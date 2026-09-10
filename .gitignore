@@ -1,0 +1,25 @@
+# Configuración local de Claude Code
+.claude/
+
+# Documentos internos de desarrollo — estrategia de negocio
+CLAUDE.md
+TASKS.md
+
+# Paquetes de distribución
+*.zip
+
+# Configuración local del editor
+.vscode/
+.idea/
+
+# Exports de traducción (regenerables)
+wp-plugins-*.po
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Dependencias
+node_modules/
+vendor/

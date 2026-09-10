@@ -1,0 +1,67 @@
+# Copyright (C) 2026 HazmeUnaPagina.cl
+# This file is distributed under the GPL v2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: HUP - Campos SEO con IA 1.0.0\n"
+"Report-Msgid-Bugs-To: https://hazmeunapagina.cl/hup-campos-seo-ia\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-09-01T00:00:00+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Domain: hup-campos-seo-con-ia\n"
+
+#. Plugin Name of the plugin
+msgid "HUP - Campos SEO con IA"
+msgstr ""
+
+#. Plugin URI of the plugin
+#. Author URI of the plugin
+msgid "https://hazmeunapagina.cl/hup-campos-seo-ia"
+msgstr ""
+
+#. Description of the plugin
+msgid "Rellena con IA los campos de tus productos y posts —descripciones, etiquetas y alt text— con textos escritos para posicionar. Detecta RankMath, Yoast SEO y All In One SEO."
+msgstr ""
+
+#. Author of the plugin
+msgid "HazmeUnaPagina.cl"
+msgstr ""
+
+#: includes/Admin/Assets.php:59
+msgid "Generando..."
+msgstr ""
+
+#: includes/Admin/Assets.php:60
+msgid "Completado"
+msgstr ""
+
+#: includes/Admin/Assets.php:61
+msgid "Error"
+msgstr ""
+
+#: includes/Admin/Assets.php:62
+msgid "¿Estás seguro?"
+msgstr ""
+
+#: includes/Admin/Assets.php:63
+msgid "Guardado correctamente"
+msgstr ""
+
+#: includes/Admin/Assets.php:73
+msgid "Sin permisos."
+msgstr ""
+
+#: includes/Core.php:82
+msgid "Configurar"
+msgstr ""
+
+#: includes/Settings.php:398
+msgid "Se requiere la extensión OpenSSL de PHP para encriptar las API keys."
+msgstr ""
+
+#: includes/Settings.php:399
+msgid "Error de requisitos"
+msgstr ""

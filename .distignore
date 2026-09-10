@@ -1,0 +1,38 @@
+# Archivos que NO deben viajar en el paquete de WordPress.org.
+#
+# Plugin Check marca cada uno de estos: los archivos ocultos no están
+# permitidos, los directorios de instrucciones de IA no deben ir en producción,
+# y en la raíz solo se esperan readme.txt y LICENSE.txt como documentación.
+#
+# Para construir el paquete:
+#   wp dist-archive .            (WP-CLI con el paquete dist-archive-command)
+# o, sin WP-CLI, copiar la carpeta y borrar a mano lo que hay aquí listado.
+
+# Control de versiones y configuración de desarrollo
+.git
+.gitignore
+.distignore
+.gitattributes
+.editorconfig
+
+# Instrucciones y notas de desarrollo
+.claude
+CLAUDE.md
+TASKS.md
+
+# Basura del sistema
+.DS_Store
+Thumbs.db
+
+# Dependencias y herramientas
+node_modules
+vendor
+composer.json
+composer.lock
+package.json
+package-lock.json
+phpcs.xml
+phpcs.xml.dist
+phpunit.xml
+phpunit.xml.dist
+tests
