@@ -59,10 +59,19 @@ abstract class AbstractProvider implements ProviderInterface {
                 case 403:
                     throw new \RuntimeException( 'Acceso denegado. Tu plan puede no tener acceso a este modelo.' );
                 case 429:
-                    throw new \RuntimeException( 'Límite de solicitudes alcanzado (rate limit). Espera unos segundos e intenta de nuevo.' );
+                    // Gemini responde 429 con «limit: 0» cuando el plan no
+                    // incluye el modelo (Gemini 4 en la capa gratuita): esperar
+                    // no lo arregla nunca, así que no se dice que espere.
+                    if ( false !== strpos( (string) $api_msg, 'limit: 0' ) ) {
+                        throw new \RuntimeException( 'Tu plan con el proveedor no incluye este modelo (cuota 0, habitual en la capa gratuita de Gemini). Elige otro modelo o activa la facturación en tu cuenta del proveedor.' );
+                    }
+                    throw new \RuntimeException( 'Límite de solicitudes o cuota alcanzado. Espera un minuto e intenta de nuevo; si se repite, revisa el plan y la facturación en tu cuenta del proveedor.' );
+                case 503:
+                    // Es el código con el que Gemini avisa de un modelo saturado
+                    // («high demand»): otro modelo suele responder en ese momento.
+                    throw new \RuntimeException( 'El modelo está saturado o no disponible temporalmente. Intenta de nuevo en unos minutos o elige otro modelo.' );
                 case 500:
                 case 502:
-                case 503:
                     throw new \RuntimeException( 'El servidor de la API no está disponible temporalmente. Intenta de nuevo en unos minutos.' );
                 default:
                     throw new \RuntimeException(

@@ -148,6 +148,7 @@ Uninstalling removes the configuration options, the log table, the temporary cac
 * Reasoning models now use a low reasoning effort and get enough output room, so responses are no longer cut short and the connection test works with GPT-5 and later.
 * OpenAI now uses Structured Outputs, like Gemini already did, so every response follows the expected format.
 * A response cut off by the token limit now shows an error instead of saving incomplete fields.
+* Clearer errors when a model is overloaded or not included in your provider plan (for example, Gemini 4 on Google's free tier).
 * Logged costs now include input tokens and, for Gemini, reasoning tokens. Announced price increases apply automatically on their date.
 * Fixed accented characters and emoji being corrupted when a malformed response had to be recovered.
 * Responses are no longer cached when caching is not requested.
