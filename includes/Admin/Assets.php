@@ -8,7 +8,6 @@
 namespace HUP\CamposSeoIA\Admin;
 
 use HUP\CamposSeoIA\Settings;
-use HUP\CamposSeoIA\SEO\PluginDetector;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -55,6 +54,7 @@ class Assets {
             // La calculadora usa esta tabla: antes tenía su propia copia en JS,
             // que se desincronizaba y no pasaba por el filtro hcsai_token_costs.
             'costs'    => Settings::token_costs(),
+            'costs_in' => Settings::token_input_costs(),
             'i18n'     => [
                 'generating'  => __( 'Generando...', 'hup-campos-seo-con-ia' ),
                 'completed'   => __( 'Completado', 'hup-campos-seo-con-ia' ),
@@ -108,9 +108,34 @@ class Assets {
             }
         }
 
-        // Contexto del sitio
+        // Perfil del negocio: la descripción libre más los campos que le dicen
+        // a la IA qué posicionar y dónde.
         if ( isset( $_POST['hcsai_site_context'] ) ) {
             Settings::save( 'site_context', sanitize_textarea_field( wp_unslash( $_POST['hcsai_site_context'] ) ) );
+        }
+
+        // Selecciones: solo valores de su lista; cualquier otra cosa queda en
+        // "sin especificar".
+        $selects = [
+            'tipo_sitio' => Settings::SITE_TYPES,
+            'alcance'    => Settings::SCOPES,
+            'modalidad'  => Settings::DELIVERY,
+        ];
+        foreach ( $selects as $key => $opciones ) {
+            if ( isset( $_POST[ 'hcsai_' . $key ] ) ) {
+                $valor = sanitize_key( wp_unslash( $_POST[ 'hcsai_' . $key ] ) );
+                Settings::save( $key, isset( $opciones[ $valor ] ) ? $valor : '' );
+            }
+        }
+
+        // Textos: recortados a su límite, porque viajan en cada prompt.
+        foreach ( Settings::PROFILE_LIMITS as $key => $max ) {
+            if ( isset( $_POST[ 'hcsai_' . $key ] ) ) {
+                $valor = in_array( $key, [ 'publico', 'diferenciadores' ], true )
+                    ? sanitize_textarea_field( wp_unslash( $_POST[ 'hcsai_' . $key ] ) )
+                    : sanitize_text_field( wp_unslash( $_POST[ 'hcsai_' . $key ] ) );
+                Settings::save( $key, mb_substr( $valor, 0, $max ) );
+            }
         }
 
         // País e idioma
@@ -131,7 +156,9 @@ class Assets {
         foreach ( [ 'product', 'post', 'post_seo', 'improve' ] as $type ) {
             $field = 'hcsai_prompt_' . $type;
             if ( isset( $_POST[ $field ] ) ) {
-                Settings::save( 'prompt_' . $type, sanitize_textarea_field( wp_unslash( $_POST[ $field ] ) ) );
+                // Solo se guarda si el usuario lo cambió: un prompt por defecto
+                // guardado ya no recibiría las mejoras de versiones futuras.
+                Settings::save_prompt( $type, sanitize_textarea_field( wp_unslash( $_POST[ $field ] ) ) );
             }
         }
 
@@ -139,6 +166,10 @@ class Assets {
         if ( isset( $_POST['hcsai_log_retention_days'] ) ) {
             Settings::save( 'log_retention_days', absint( $_POST['hcsai_log_retention_days'] ) );
         }
+
+        // Completar: si reemplaza lo que ya tiene contenido. Mismo criterio que
+        // el checkbox de abajo: siempre está en el formulario.
+        Settings::save( 'overwrite', isset( $_POST['hcsai_overwrite'] ) ? '1' : '0' );
 
         // Desinstalación: consentimiento explícito para borrar las API keys.
         // El checkbox siempre forma parte de este formulario, por lo que su

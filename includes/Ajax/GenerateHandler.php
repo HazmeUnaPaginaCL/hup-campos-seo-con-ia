@@ -7,6 +7,7 @@
 
 namespace HUP\CamposSeoIA\Ajax;
 
+use HUP\CamposSeoIA\Settings;
 use HUP\CamposSeoIA\Generator\SingleGenerator;
 
 defined( 'ABSPATH' ) || exit;
@@ -29,8 +30,11 @@ class GenerateHandler extends BaseHandler {
 
         $post_id       = $this->input_int( 'post_id' );
         $write_targets = $this->input_array( 'write_targets' );
-        $overwrite     = (bool) $this->input_int( 'overwrite', 1 );
         $write_target  = ! empty( $write_targets ) ? $write_targets[0] : '';
+
+        // Lo decide la Configuración, no la petición: antes la interfaz mandaba
+        // siempre 1 y el ajuste guardado no se aplicaba nunca.
+        $overwrite = Settings::overwrite();
 
         if ( ! $post_id ) {
             wp_send_json_error( [ 'message' => 'ID de post requerido.' ] );

@@ -85,12 +85,17 @@ $hcsai_textos = ( 'product' === $hcsai_modal_tipo )
                 </div>
             </div>
 
-            <!-- ═══ Sección: Campos de plugin SEO ═══ -->
-            <div class="hup-seo-modal-section hup-seo-modal-seo-only">
+            <!-- ═══ Sección: Campos SEO y de redes ═══ -->
+            <!-- Se muestra siempre: sin plugin SEO estos campos los guarda e
+                 imprime este plugin, y también hay que poder revisarlos. -->
+            <div class="hup-seo-modal-section">
                 <div class="hup-seo-modal-section-header">
                     <span class="hup-seo-section-icon">🔌</span>
-                    <h4>Campos <span id="modal-seo-plugin-label">Plugin SEO</span></h4>
+                    <h4>Campos <span id="modal-seo-plugin-label">SEO y redes sociales</span></h4>
                 </div>
+                <p class="hup-seo-help" id="modal-seo-native-help" style="display:none;">
+                    No hay plugin SEO activo: estos campos los guarda este plugin y los imprime en el &lt;head&gt; de la página (título, meta descripción y Open Graph).
+                </p>
                 <div class="hup-seo-form-row" data-hcsai-field="seo_title">
                     <label class="hup-seo-form-label">Título SEO</label>
                     <input type="text" id="modal-seo-title" class="hup-seo-input" maxlength="60">

@@ -47,6 +47,16 @@ class ResponseParser {
         foreach ( $strategies as $strategy ) {
             $result = self::$strategy( $raw_text );
             if ( null !== $result && is_array( $result ) ) {
+                // Con Structured Outputs, OpenAI devuelve null en los campos
+                // opcionales que no rellena. Fuera aquí, para que ningún
+                // consumidor tenga que distinguir "null" de "no vino".
+                $result = array_filter(
+                    $result,
+                    static function ( $value ): bool {
+                        return null !== $value;
+                    }
+                );
+
                 // Validar que tenga al menos un campo esperado
                 if ( ! empty( $expected ) ) {
                     $found = array_intersect( array_keys( $result ), $expected );
@@ -262,7 +272,7 @@ class ResponseParser {
             // Buscar "campo": "valor" o "campo":"valor"
             $pattern = '/"' . preg_quote( $field, '/' ) . '"\s*:\s*"((?:[^"\\\\]|\\\\.)*)"/s';
             if ( preg_match( $pattern, $text, $match ) ) {
-                $result[ $field ] = stripcslashes( $match[1] );
+                $result[ $field ] = self::unescape_json_string( $match[1] );
             }
         }
 
@@ -270,11 +280,31 @@ class ResponseParser {
         if ( preg_match( '/"tags"\s*:\s*\[(.*?)\]/s', $text, $match ) ) {
             preg_match_all( '/"((?:[^"\\\\]|\\\\.)*)"/', $match[1], $tag_matches );
             if ( ! empty( $tag_matches[1] ) ) {
-                $result['tags'] = array_map( 'stripcslashes', $tag_matches[1] );
+                $result['tags'] = array_map(
+                    static function ( string $tag ): string {
+                        return self::unescape_json_string( $tag );
+                    },
+                    $tag_matches[1]
+                );
             }
         }
 
         return ! empty( $result ) ? $result : null;
+    }
+
+    /**
+     * Des-escapa el interior de un string JSON capturado por regex.
+     *
+     * Antes se usaba stripcslashes(), que entiende los escapes de C pero no
+     * \uXXXX: el escape de la "ó" de "descripción" quedaba como "descripciu00f3n", y la IA
+     * escapa así los acentos con frecuencia. Se decodifica como el string JSON
+     * que es; si no es válido (saltos de línea literales), se cae a
+     * stripcslashes, que al menos resuelve \n, \t y \".
+     */
+    private static function unescape_json_string( string $inner ): string {
+        $decoded = json_decode( '"' . $inner . '"' );
+
+        return is_string( $decoded ) ? $decoded : stripcslashes( $inner );
     }
 
     /**

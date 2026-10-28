@@ -66,9 +66,14 @@ class FieldsHandler extends BaseHandler {
             wp_send_json_error( [ 'message' => 'Sin permisos para editar este post.' ] );
         }
 
-        // Obtener campos del formulario. Cada valor se desescapa y sanitiza uno a
-        // uno en el bucle de abajo, según lo que admita el campo: el HTML básico
-        // de una descripción no se puede tratar igual que un título.
+        // Obtener campos del formulario. El modal solo manda los que el usuario
+        // cambió: reenviar el contenido entero en cada guardado lo pasaba por
+        // wp_kses_post y le quitaba iframes, formularios y demás aunque solo se
+        // hubiera tocado la meta descripción.
+        //
+        // Cada valor se desescapa y sanitiza uno a uno en el bucle de abajo,
+        // según lo que admita el campo: el HTML básico de una descripción no se
+        // puede tratar igual que un título.
         // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- el nonce se verifica en verify_request(), que todo handler llama antes de leer entradas; cada valor se sanitiza por elemento más abajo.
         $raw_fields = isset( $_POST['fields'] ) && is_array( $_POST['fields'] ) ? $_POST['fields'] : [];
         $fields     = [];
@@ -95,7 +100,11 @@ class FieldsHandler extends BaseHandler {
         $plugin       = PluginDetector::detect_active();
         $write_target = ( 'none' !== $plugin ) ? $plugin : 'native';
 
-        Writer::write( $post_id, $fields, $write_target, true );
+        try {
+            Writer::write( $post_id, $fields, $write_target, true );
+        } catch ( \RuntimeException $e ) {
+            wp_send_json_error( [ 'message' => $e->getMessage() ] );
+        }
 
         // Recalcular score. Se devuelve el desglose entero para que el modal
         // muestre al instante qué campos acaba de completar el usuario.

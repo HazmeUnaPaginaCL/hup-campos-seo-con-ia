@@ -28,19 +28,33 @@ class GeminiProvider extends AbstractProvider {
     /** Techo mínimo de salida para modelos que razonan antes de responder. */
     private const MIN_TOKENS_THINKING = 8192;
 
+    /**
+     * Techo mínimo para Gemini 4. Su guía de migración (ai.google.dev, «What's
+     * new in Gemini 4 Argon») pide al menos 32.768: el tope cubre razonamiento
+     * y respuesta juntos, y con menos el JSON sale cortado.
+     */
+    private const MIN_TOKENS_GEMINI_4 = 32768;
+
     public function get_slug(): string {
         return 'google';
     }
 
     /**
-     * Gemini 3 en adelante.
+     * Gemini 3 en adelante (3.x, 4-argon…).
      *
      * Cambia el contrato respecto a la línea 2.5: se recomienda no enviar
      * temperature/topP/topK, y el razonamiento se controla con
-     * thinkingConfig.thinkingLevel (minimal|low|medium|high, default medium).
+     * thinkingConfig.thinkingLevel. Antes la expresión solo reconocía
+     * `gemini-3`, así que gemini-4-argon caía en la rama antigua: sin margen
+     * para razonar y con temperature.
      */
     private static function is_gemini_3( string $model ): bool {
-        return 1 === preg_match( '/^gemini-3/i', $model );
+        return 1 === preg_match( '/^gemini-([3-9]|\d{2,})/i', $model );
+    }
+
+    /** Gemini 4 en adelante. */
+    private static function is_gemini_4( string $model ): bool {
+        return 1 === preg_match( '/^gemini-([4-9]|\d{2,})/i', $model );
     }
 
     public function get_display_name(): string {
@@ -58,7 +72,7 @@ class GeminiProvider extends AbstractProvider {
         // margen. maxOutputTokens es un tope, no un consumo: subirlo no encarece
         // nada por sí solo. Se ajusta antes de la clave de caché para que casen.
         if ( $is_g3 ) {
-            $max_tokens = max( $max_tokens, self::MIN_TOKENS_THINKING );
+            $max_tokens = max( $max_tokens, self::is_gemini_4( $model ) ? self::MIN_TOKENS_GEMINI_4 : self::MIN_TOKENS_THINKING );
         }
 
         $cache_key = 'hcsai_ai_' . md5( $prompt . $model . $max_tokens . wp_json_encode( $schema ) );
@@ -71,23 +85,30 @@ class GeminiProvider extends AbstractProvider {
 
         $url = self::API_BASE . $model . ':generateContent';
 
+        // Sin temperature en ningún modelo: Google la marcó como obsoleta (junto
+        // con topP y topK) el 2026-07-21, y Gemini 4 directamente la ignora.
         $generation_config = [ 'maxOutputTokens' => $max_tokens ];
 
         if ( $is_g3 ) {
-            // Gemini 3 recomienda dejar temperature en su valor por defecto (1.0):
-            // cambiarlo puede provocar bucles o degradar la respuesta, así que no
-            // se envía. thinkingLevel al mínimo útil porque aquí solo se piden
-            // campos SEO, no razonamiento complejo.
+            // thinkingLevel al mínimo útil porque aquí solo se piden campos SEO,
+            // no razonamiento complejo.
+            //
+            // 'low' y no 'minimal' porque es el mínimo que aceptan todos: 3.8
+            // Flash y 4 Argon devuelven error con 'minimal'.
             //
             // Ojo con la forma: la Interactions API lo recibe como
             // generation_config.thinking_level, pero generateContent —que es la que
             // usa este plugin— lo anida en generationConfig.thinkingConfig.thinkingLevel.
             $generation_config['thinkingConfig'] = [ 'thinkingLevel' => 'low' ];
-        } else {
-            $generation_config['temperature'] = 0.7;
         }
 
         $body = [
+            // Desde el 2026-10-26 los proyectos de pago nuevos guardan cada
+            // petición en los logs de AI Studio por defecto (prompt y respuesta,
+            // hasta 55 días). El plugin declara que el contenido del sitio no se
+            // queda en ningún otro sitio, así que se desactiva por petición. Va
+            // en la raíz del cuerpo, no en generationConfig.
+            'store' => false,
             'system_instruction' => [
                 'parts' => [
                     [ 'text' => 'Eres un asistente de SEO. Responde SIEMPRE con JSON válido, sin markdown ni explicaciones.' ],
@@ -116,100 +137,61 @@ class GeminiProvider extends AbstractProvider {
 
         $data = $this->http_post( $url, $headers, $body );
 
-        // Extraer respuesta de Gemini
-        $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? '';
+        // Extraer respuesta de Gemini. Se unen todas las partes de texto, no solo
+        // la primera: la respuesta puede llegar repartida, y las partes de
+        // razonamiento (thought) no forman parte del JSON.
+        $text = '';
+        foreach ( $data['candidates'][0]['content']['parts'] ?? [] as $part ) {
+            if ( empty( $part['thought'] ) && isset( $part['text'] ) ) {
+                $text .= $part['text'];
+            }
+        }
         $usage = $data['usageMetadata'] ?? [];
 
         // Verificar finishReason
         $finish = $data['candidates'][0]['finishReason'] ?? '';
 
-        if ( empty( $text ) ) {
+        // Antes que el caso vacío: si el razonamiento agota el tope, la respuesta
+        // llega sin texto, y "no devolvió contenido" ocultaba la causa real.
+        if ( 'MAX_TOKENS' === $finish ) {
+            throw new \RuntimeException( 'La respuesta de Gemini fue cortada por exceder el límite de tokens. Intenta con un contenido más corto.' );
+        }
+
+        if ( '' === trim( $text ) ) {
             if ( 'SAFETY' === $finish ) {
                 throw new \RuntimeException( 'Gemini bloqueó la respuesta por filtros de seguridad.' );
             }
             throw new \RuntimeException( 'Gemini no devolvió contenido en la respuesta.' );
         }
 
-        if ( 'MAX_TOKENS' === $finish ) {
-            throw new \RuntimeException( 'La respuesta de Gemini fue cortada por exceder el límite de tokens. Intenta con un contenido más corto.' );
-        }
-
+        // El razonamiento (thoughtsTokenCount) se cobra a precio de salida pero
+        // no va incluido en candidatesTokenCount: sin sumarlo, el costo
+        // registrado salía por debajo del real con todos los Gemini 3.
         $result = [
             'text'          => trim( $text ),
             'tokens_input'  => (int) ( $usage['promptTokenCount'] ?? 0 ),
-            'tokens_output' => (int) ( $usage['candidatesTokenCount'] ?? $usage['totalTokenCount'] ?? 0 ),
+            'tokens_output' => (int) ( $usage['candidatesTokenCount'] ?? 0 ) + (int) ( $usage['thoughtsTokenCount'] ?? 0 ),
         ];
 
-        set_transient( $cache_key, $result, 12 * HOUR_IN_SECONDS );
+        // Sin caché pedida, tampoco se guarda: cada generación individual dejaba
+        // en wp_options una respuesta de 12 horas que nadie volvía a leer.
+        if ( $use_cache ) {
+            set_transient( $cache_key, $result, 12 * HOUR_IN_SECONDS );
+        }
 
         return $result;
     }
 
     /**
-     * Descripción de cada campo para el responseSchema de Gemini.
-     *
-     * @return array<string, array>
-     */
-    private static function field_schemas(): array {
-        $texto = static function ( string $desc ): array {
-            return [ 'type' => 'STRING', 'description' => $desc ];
-        };
-
-        return [
-            'seo_title'           => $texto( 'Titulo SEO optimizado, maximo 60 caracteres' ),
-            'meta_description'    => $texto( 'Meta descripcion, 120-160 caracteres' ),
-            'focus_keyword'       => $texto( 'Palabra clave principal' ),
-            'og_title'            => $texto( 'Titulo Open Graph' ),
-            'og_description'      => $texto( 'Descripcion Open Graph' ),
-            'alt_text'            => $texto( 'Texto alternativo para imagen, maximo 120 caracteres' ),
-            'product_description' => $texto( 'Descripcion completa del producto, minimo 150 palabras' ),
-            'short_description'   => $texto( 'Descripcion corta del producto, 1-2 oraciones' ),
-            'post_title'          => $texto( 'Titulo del post' ),
-            'post_content'        => $texto( 'Contenido completo del post' ),
-            'tags'                => [
-                'type'        => 'ARRAY',
-                'items'       => [ 'type' => 'STRING' ],
-                'description' => 'Etiquetas SEO relevantes',
-            ],
-        ];
-    }
-
-    /**
      * Construye el responseSchema de Gemini para una lista de campos.
      *
-     * Recibe la lista en vez de deducirla de un "tipo": qué campos se piden lo
-     * decide Settings::generated_fields(), que es filtrable. Antes había una rama
-     * por tipo de contenido, que había que mantener sincronizada a mano con los
-     * prompts.
+     * Se conserva porque es pública y otros plugins pueden estar llamándola; la
+     * lógica vive en ResponseSchema, que comparten los dos proveedores.
      *
      * @param array<string> $fields Campos a pedir.
      * @return array Schema para structured outputs.
      */
     public static function build_schema( array $fields ): array {
-        $catalogo   = self::field_schemas();
-        $properties = [];
-
-        foreach ( $fields as $field ) {
-            if ( isset( $catalogo[ $field ] ) ) {
-                $properties[ $field ] = $catalogo[ $field ];
-            }
-        }
-
-        if ( empty( $properties ) ) {
-            return [];
-        }
-
-        // Solo se marcan como obligatorios los campos que realmente se piden:
-        // exigir uno que no está en properties hace que Gemini rechace el schema.
-        $required = array_values( array_intersect(
-            [ 'seo_title', 'meta_description', 'focus_keyword', 'post_title', 'post_content' ],
-            array_keys( $properties )
-        ) );
-
-        return [
-            'type'       => 'OBJECT',
-            'properties' => $properties,
-            'required'   => $required,
-        ];
+        return ResponseSchema::for_fields( $fields );
     }
 }

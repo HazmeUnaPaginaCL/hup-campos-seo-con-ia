@@ -10,6 +10,7 @@
 
 # Control de versiones y configuración de desarrollo
 .git
+.github
 .gitignore
 .distignore
 .gitattributes
@@ -19,6 +20,10 @@
 .claude
 CLAUDE.md
 TASKS.md
+
+# Paquetes construidos a mano (el zip de una versión anterior no debe viajar
+# dentro del de la siguiente)
+*.zip
 
 # Basura del sistema
 .DS_Store

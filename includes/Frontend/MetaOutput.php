@@ -22,6 +22,28 @@ class MetaOutput {
         }
 
         add_action( 'wp_head', [ $this, 'render_meta_tags' ], 1 );
+        add_filter( 'pre_get_document_title', [ $this, 'filter_document_title' ] );
+    }
+
+    /**
+     * Usa el título SEO generado como <title> de la página.
+     *
+     * Se generaba, se pagaba y sumaba 20 puntos al score, pero no llegaba nunca
+     * al frontend. Solo actúa en temas con soporte de `title-tag`, que son los
+     * que construyen el título con wp_get_document_title().
+     *
+     * @param string $title Título que propone WordPress u otro filtro.
+     */
+    public function filter_document_title( $title ) {
+        if ( ! is_singular() ) {
+            return $title;
+        }
+
+        $seo_title = self::field( get_queried_object_id(), FieldMap::key( 'native', 'seo_title' ) );
+
+        // Con este filtro WordPress devuelve el valor tal cual, sin pasarlo por
+        // esc_html() como hace con el título que compone él mismo.
+        return '' !== $seo_title ? esc_html( $seo_title ) : $title;
     }
 
     /**
@@ -51,6 +73,9 @@ class MetaOutput {
         }
 
         $og_title = self::field( $post_id, $map['og_title'] ?? '' );
+        if ( '' === $og_title ) {
+            $og_title = self::field( $post_id, $map['seo_title'] ?? '' );
+        }
         if ( '' === $og_title ) {
             $og_title = get_the_title( $post_id );
         }

@@ -11,7 +11,7 @@ use HUP\CamposSeoIA\Settings;
 use HUP\CamposSeoIA\Logger;
 use HUP\CamposSeoIA\AI\ProviderFactory;
 use HUP\CamposSeoIA\AI\ResponseParser;
-use HUP\CamposSeoIA\AI\GeminiProvider;
+use HUP\CamposSeoIA\AI\ResponseSchema;
 use HUP\CamposSeoIA\SEO\Writer;
 use HUP\CamposSeoIA\SEO\PluginDetector;
 
@@ -42,11 +42,8 @@ class PostCreator {
             // Construir prompt
             $prompt = PromptBuilder::build_create_post( $topic, $tone, $length );
 
-            // Schema para Gemini
-            $schema = [];
-            if ( $provider instanceof GeminiProvider ) {
-                $schema = GeminiProvider::build_schema( array_merge( [ 'post_title', 'post_content' ], Settings::fields_for( 'post' ) ) );
-            }
+            // Structured outputs (cada proveedor adapta el schema a su formato)
+            $schema = ResponseSchema::for_fields( array_merge( [ 'post_title', 'post_content' ], Settings::fields_for( 'post' ) ) );
 
             // Llamar a la IA (8192 tokens para posts largos con HTML)
             // Sin caché: crear un post es una acción única que debe dar contenido fresco
@@ -102,7 +99,7 @@ class PostCreator {
 
             // Log
             $total_tokens = $result['tokens_input'] + $result['tokens_output'];
-            $cost         = $result['tokens_output'] * Settings::cost_per_token( $model );
+            $cost         = Settings::cost_for( $model, $result['tokens_input'], $result['tokens_output'] );
             Logger::log( $post_id, 'post', 'create_post', $total_tokens, $cost, $model, 'ok' );
 
             return [
@@ -123,17 +120,22 @@ class PostCreator {
 
     /**
      * Convierte texto plano con marcadores a HTML.
-     * Soporta: ##Titulo## → <h2>, \n\n → <p>, listas con -.
+     * Soporta: ##Titulo## → <h2>, ###Titulo### → <h3>, \n\n → <p>, listas con -.
+     *
+     * Pública porque PostImprover la necesita igual: el prompt de mejora pide
+     * el mismo formato, y antes ese texto se guardaba tal cual, con los ## a
+     * la vista y sin párrafos.
      */
-    private static function text_to_html( string $text ): string {
+    public static function text_to_html( string $text ): string {
         // Si ya parece HTML, retornar tal cual
         if ( preg_match( '/<(?:p|h[1-6]|div|ul|ol)\b/i', $text ) ) {
             return $text;
         }
 
-        // Convertir marcadores de subtítulos
-        $text = preg_replace( '/##\s*(.+?)\s*##/', '<h2>$1</h2>', $text );
+        // Convertir marcadores de subtítulos. ### va primero: con ## delante,
+        // "###Título###" acababa como "#<h2>Título</h2>#".
         $text = preg_replace( '/###\s*(.+?)\s*###/', '<h3>$1</h3>', $text );
+        $text = preg_replace( '/##\s*(.+?)\s*##/', '<h2>$1</h2>', $text );
 
         // Separar en párrafos
         $paragraphs = preg_split( '/\n{2,}/', trim( $text ) );

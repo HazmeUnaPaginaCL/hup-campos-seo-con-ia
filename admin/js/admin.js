@@ -13,12 +13,6 @@
     return $.post(hcsai.ajax_url, data);
   }
 
-  // Escapa para CONTENIDO de texto. No sirve para atributos: no escapa comillas.
-  // Para atributos usar .attr() / .text() de jQuery en vez de concatenar.
-  function escHtml(str) {
-    return $('<span>').text(str || '').html();
-  }
-
   // msg puede venir del servidor y contener el texto de error que devolvió la
   // API de IA, así que se inserta con .text() y nunca concatenado en HTML.
   function toast(msg, type) {
@@ -82,11 +76,19 @@
 
     $btn.prop('disabled', true).text('Completando...');
 
-    ajax('generate', { post_id: id, overwrite: 1 })
+    // Si sobrescribe o no lo decide Configuración, no este botón.
+    ajax('generate', { post_id: id })
       .done(function (r) {
         if (r.success) {
           var d = r.data;
           updateScoreBadge($row, d.score);
+
+          // Sin campos vacíos no se llama a la IA: se avisa y no se toca la fila.
+          if (d.skipped) {
+            toast(d.message);
+            return;
+          }
+
           // Actualizar estado
           $row.find('td:eq(-2)').text(new Date().toLocaleString());
           // Feedback de imagen
@@ -183,9 +185,39 @@
   // ── Edit SEO modal ──────────────────────────────────
   // El badge de score de la tabla abre el mismo modal: es donde está el
   // desglose y donde se arregla lo que falta.
+  // Campos del modal y el valor con el que se abrieron. Al guardar solo se
+  // envía lo que cambió: reenviar el contenido entero cada vez lo pasaba por
+  // wp_kses_post y le quitaba iframes, formularios y demás aunque solo se
+  // hubiera tocado la meta descripción.
+  var MODAL_FIELDS = {
+    product_description: '#modal-product-desc',
+    short_description: '#modal-short-desc',
+    seo_title: '#modal-seo-title',
+    meta_description: '#modal-meta-desc',
+    focus_keyword: '#modal-focus-kw',
+    og_title: '#modal-og-title',
+    og_description: '#modal-og-desc',
+    alt_text: '#modal-alt-text',
+    tags: '#modal-tags'
+  };
+  var modalOriginal = {};
+
+  // Se toma de .val() y no de los datos del servidor: el navegador normaliza
+  // los saltos de línea de un textarea, y comparar contra el dato crudo
+  // marcaría como cambiado un campo intacto.
+  function snapshotModal() {
+    modalOriginal = {};
+    $.each(MODAL_FIELDS, function (key, sel) {
+      modalOriginal[key] = $(sel).val() || '';
+    });
+  }
+
   $(document).on('click', '.hup-seo-edit-seo, .hup-seo-score--link[data-id]', function () {
     var id = $(this).data('id');
     $('#modal-post-id').val(id);
+    // Hasta que lleguen los datos de este contenido, el formulario aún tiene
+    // los del anterior: guardar ahora mezclaría los dos.
+    $('#modal-save-fields').prop('disabled', true);
     $('#hup-seo-seo-modal').show();
 
     ajax('get_fields', { post_id: id }).done(function (r) {
@@ -210,13 +242,11 @@
         $('#modal-og-title').val(f.og_title || '');
         $('#modal-og-desc').val(f.og_description || '');
 
-        // Mostrar/ocultar sección de plugin SEO
-        $('.hup-seo-modal-seo-only').toggle(hasPlugin);
-
-        // Nombre del plugin en el header de la sección
-        if (hasPlugin && f.plugin_name) {
-          $('#modal-seo-plugin-label').text(f.plugin_name);
-        }
+        // La sección SEO se ve siempre. Antes se ocultaba sin plugin SEO, y
+        // entonces los campos propios —los que se imprimen en el <head>, y
+        // los que puntúan en los posts— no se podían revisar ni completar.
+        $('#modal-seo-plugin-label').text(hasPlugin && f.plugin_name ? f.plugin_name : 'SEO y redes sociales');
+        $('#modal-seo-native-help').toggle(!hasPlugin);
 
         // Barra de estado
         $('#modal-seo-info').show();
@@ -243,6 +273,11 @@
         // Contadores
         updateCharCounts();
         updateWordCount();
+
+        snapshotModal();
+        $('#modal-save-fields').prop('disabled', false);
+      } else {
+        toast(r.data.message, 'error');
       }
     });
   });
@@ -256,22 +291,29 @@
   $(document).on('click', '#modal-save-fields', function () {
     var $btn = $(this);
     var id = $('#modal-post-id').val();
+    var payload = { post_id: id };
+    var cambios = 0;
+
+    $.each(MODAL_FIELDS, function (key, sel) {
+      var $el = $(sel);
+      var val = $el.val() || '';
+      if (!$el.prop('disabled') && val !== modalOriginal[key]) {
+        payload['fields[' + key + ']'] = val;
+        cambios++;
+      }
+    });
+
+    if (!cambios) {
+      toast('No hay cambios que guardar');
+      return;
+    }
+
     $btn.prop('disabled', true).text('Guardando...');
 
-    ajax('save_fields', {
-      post_id: id,
-      'fields[product_description]': $('#modal-product-desc').val(),
-      'fields[short_description]': $('#modal-short-desc').val(),
-      'fields[seo_title]': $('#modal-seo-title').val(),
-      'fields[meta_description]': $('#modal-meta-desc').val(),
-      'fields[focus_keyword]': $('#modal-focus-kw').val(),
-      'fields[og_title]': $('#modal-og-title').val(),
-      'fields[og_description]': $('#modal-og-desc').val(),
-      'fields[alt_text]': $('#modal-alt-text').val(),
-      'fields[tags]': $('#modal-tags').val()
-    })
+    ajax('save_fields', payload)
       .done(function (r) {
         if (r.success) {
+          snapshotModal();
           toast('Campos guardados — Score: ' + r.data.score + '%');
 
           // El modal se queda abierto con el desglose recalculado: si aún falta
@@ -497,7 +539,7 @@
         if (r.success) {
           var postTitle = r.data.post_title || 'Post';
           // El título lo genera la IA y edit_url va en un atributo: se arma con
-          // jQuery en vez de concatenar (escHtml no escapa comillas).
+          // jQuery en vez de concatenar.
           var $notice = $('<div class="hup-seo-notice hup-seo-notice-ok"></div>')
             .append(document.createTextNode('✅ Post creado como borrador: '))
             .append($('<strong></strong>').text(postTitle))
@@ -522,6 +564,18 @@
   });
 
   // ── Improve post ────────────────────────────────────
+  var IMPROVE_LABELS = {
+    post_title: 'Título',
+    seo_title: 'Título SEO',
+    meta_description: 'Meta descripción',
+    focus_keyword: 'Palabra clave',
+    og_title: 'Título para redes sociales',
+    og_description: 'Descripción para redes sociales',
+    short_description: 'Extracto',
+    alt_text: 'Alt text de la imagen destacada',
+    tags: 'Etiquetas'
+  };
+
   $(document).on('click', '#btn-improve-post', function () {
     var $btn = $(this);
     var postId = $('#improve-post-id').val();
@@ -540,24 +594,58 @@
       .done(function (r) {
         if (r.success) {
           var d = r.data.improved;
-          var html = '<div class="hup-seo-notice hup-seo-notice-ok">Mejoras generadas (tokens: ' + r.data.tokens + ')</div>';
-          html += '<div class="hup-seo-card"><div class="hup-seo-card-body">';
+          var $body = $('<div class="hup-seo-card-body"></div>');
 
-          if (d.post_title) html += '<p><strong>Título:</strong> ' + escHtml(d.post_title) + '</p>';
-          if (d.seo_title) html += '<p><strong>SEO Title:</strong> ' + escHtml(d.seo_title) + '</p>';
-          if (d.meta_description) html += '<p><strong>Meta desc:</strong> ' + escHtml(d.meta_description) + '</p>';
-          if (d.focus_keyword) html += '<p><strong>Keyword:</strong> ' + escHtml(d.focus_keyword) + '</p>';
+          // La vista previa muestra TODO lo que se va a aplicar, contenido
+          // incluido. Antes solo enseñaba cuatro campos y el artículo se
+          // reescribía a ciegas.
+          $.each(IMPROVE_LABELS, function (key, label) {
+            var val = d[key];
+            if (!val || (Array.isArray(val) && !val.length)) return;
+            $body.append(
+              $('<p></p>')
+                .append($('<strong></strong>').text(label + ': '))
+                .append(document.createTextNode(Array.isArray(val) ? val.join(', ') : val))
+            );
+          });
 
-          html += '<button type="button" class="hup-seo-btn hup-seo-btn-primary hup-seo-apply-improvement">Aplicar mejoras</button>';
-          html += '</div></div>';
+          if (d.post_content) {
+            if (r.data.se_pierde && r.data.se_pierde.length) {
+              $body.append(
+                $('<div class="hup-seo-notice hup-seo-notice-warning"></div>').text(
+                  'El post original tiene ' + r.data.se_pierde.join(', ') +
+                  '. La versión mejorada se reescribe como texto y no los conserva.'
+                )
+              );
+            }
+            // El HTML ya viene pasado por wp_kses_post en el servidor: es el
+            // mismo filtro que WordPress aplica al contenido que muestra.
+            $body.append(
+              $('<details class="hup-seo-improve-preview" open></details>')
+                .append($('<summary></summary>').text('Contenido propuesto'))
+                .append($('<div class="hup-seo-improve-preview__body"></div>').html(d.post_content))
+            );
+            $body.append(
+              $('<p class="hup-seo-help"></p>').text(
+                r.data.revision
+                  ? 'Al aplicar se guarda una revisión: puedes volver a la versión anterior desde el editor.'
+                  : 'Este sitio tiene las revisiones desactivadas: el contenido actual no se podrá recuperar.'
+              )
+            );
+          }
 
-          $result.show().html(html);
+          var $apply = $('<button type="button" class="hup-seo-btn hup-seo-btn-primary hup-seo-apply-improvement">Aplicar mejoras</button>');
+          $body.append($apply);
+
+          $result.show().empty()
+            .append($('<div class="hup-seo-notice hup-seo-notice-ok"></div>').text('Mejoras generadas (tokens: ' + r.data.tokens + ')'))
+            .append($('<div class="hup-seo-card"></div>').append($body));
 
           // El objeto se pasa por .data(), no serializado dentro de un atributo:
           // JSON.stringify no escapa comillas simples, así que un apóstrofo en el
           // texto de la IA cortaba el atributo y el botón se quedaba sin datos
           // (aplicaba "con éxito" sin aplicar nada).
-          $result.find('.hup-seo-apply-improvement').data({ 'post-id': postId, improved: d });
+          $apply.data({ 'post-id': postId, improved: d });
 
           toast('Mejoras generadas');
         } else {
@@ -578,13 +666,11 @@
 
     $btn.prop('disabled', true).text('Aplicando...');
 
-    var payload = { post_id: postId };
-    if (data.post_title) payload.post_title = data.post_title;
-    if (data.post_content) payload.post_content = data.post_content;
-    if (data.seo_title) payload.seo_title = data.seo_title;
-    if (data.meta_description) payload.meta_description = data.meta_description;
-    if (data.focus_keyword) payload.focus_keyword = data.focus_keyword;
-    if (data.tags) payload.tags = data.tags;
+    // Se envía todo lo generado: el servidor ya solo devolvió los campos de
+    // las opciones marcadas, y vuelve a filtrarlos contra el registro. Antes se
+    // elegían aquí a mano y quedaban fuera el extracto y los Open Graph, que se
+    // pagaban sin aplicarse (y el Writer ponía la meta como extracto).
+    var payload = $.extend({}, data, { post_id: postId });
 
     ajax('apply_improvement', payload)
       .done(function (r) {
@@ -595,6 +681,10 @@
           toast(r.data.message, 'error');
           $btn.prop('disabled', false).text('Aplicar mejoras');
         }
+      })
+      .fail(function () {
+        toast('Error de red', 'error');
+        $btn.prop('disabled', false).text('Aplicar mejoras');
       });
   });
 
@@ -603,35 +693,46 @@
   // que es la única fuente de verdad y sí pasa por el filtro hcsai_token_costs.
   // Antes había aquí una copia a mano que se desincronizaba del catálogo.
   var modelCosts = (typeof hcsai !== 'undefined' && hcsai.costs) ? hcsai.costs : {};
+  var modelCostsIn = (typeof hcsai !== 'undefined' && hcsai.costs_in) ? hcsai.costs_in : {};
   var FALLBACK_COST = 0.000001;
+  var FALLBACK_COST_IN = 0.0000002;
+  // Tokens promedio por generación. Antes solo se contaba la salida, y el
+  // prompt —con el contenido del producto o el post— se cobra igual.
+  var AVG_TOKENS_IN = 1000;
+  var AVG_TOKENS_OUT = 800;
+
+  // Costo en USD de una generación promedio con el modelo dado.
+  // parseFloat: wp_localize_script puede entregar los números como cadena.
+  function costPerTask(model) {
+    var costOut = parseFloat(modelCosts[model]) || FALLBACK_COST;
+    var costIn = parseFloat(modelCostsIn[model]) || FALLBACK_COST_IN;
+    return AVG_TOKENS_IN * costIn + AVG_TOKENS_OUT * costOut;
+  }
 
   function calcCost() {
     var model = $('#calc-model').val();
     var tasks = parseInt($('#calc-tasks').val()) || 0;
     var clpRate = parseInt($('#calc-clp').val()) || 960;
-    // parseFloat: wp_localize_script puede entregar los números como cadena.
-    var costPerToken = parseFloat(modelCosts[model]) || FALLBACK_COST;
-    var avgTokens = 800; // tokens promedio por generación
-    var totalUsd = tasks * avgTokens * costPerToken;
+    var perTask = costPerTask(model);
+    var totalUsd = tasks * perTask;
     var totalClp = totalUsd * clpRate;
 
     $('#calc-result-usd').text('$' + totalUsd.toFixed(4));
     $('#calc-result-clp').text('$' + Math.round(totalClp).toLocaleString('es-CL'));
 
     // Actualizar tabla de costos referenciales
-    updateCalcTable(model, clpRate, costPerToken);
+    updateCalcTable(model, clpRate, perTask);
   }
 
-  function updateCalcTable(model, clpRate, costPerToken) {
+  function updateCalcTable(model, clpRate, perTask) {
     var volumes = [100, 250, 500, 750, 1000];
-    var avgTokens = 800;
     var tbody = $('#calc-ref-body');
     if (!tbody.length) return;
 
     var html = '<tr>';
     html += '<td><strong>' + model + '</strong></td>';
     volumes.forEach(function(vol) {
-      var usd = vol * avgTokens * costPerToken;
+      var usd = vol * perTask;
       var clp = Math.round(usd * clpRate);
       html += '<td>$' + clp.toLocaleString('es-CL') + '</td>';
     });

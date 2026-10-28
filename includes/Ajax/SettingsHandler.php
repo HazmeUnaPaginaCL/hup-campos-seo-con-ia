@@ -54,6 +54,12 @@ class SettingsHandler extends BaseHandler {
             wp_send_json_error( [ 'message' => 'Proveedor no registrado: ' . $provider_slug ] );
         }
 
+        // El modelo llega del formulario y Gemini lo mete en la ruta de la URL:
+        // solo se aceptan los del catálogo, que es lo que el selector ofrece.
+        if ( ! isset( Settings::models_for( $provider_slug )[ $model ] ) ) {
+            wp_send_json_error( [ 'message' => 'Modelo no disponible para este proveedor: ' . $model ] );
+        }
+
         $provider = ProviderFactory::create( $provider_slug );
         $result   = $provider->test_connection( $model, $api_key );
 
@@ -87,8 +93,9 @@ class SettingsHandler extends BaseHandler {
             wp_send_json_error( [ 'message' => 'Tipo de prompt no válido.' ] );
         }
 
-        $key = HCSAI_PREFIX . 'prompt_' . $type;
-        update_option( $key, $defaults[ $type ] );
+        // Restaurar es dejar de personalizar: se borra la opción en vez de
+        // guardar una copia del texto actual, que se quedaría congelada.
+        delete_option( HCSAI_PREFIX . 'prompt_' . $type );
 
         wp_send_json_success( [ 'prompt' => $defaults[ $type ] ] );
     }

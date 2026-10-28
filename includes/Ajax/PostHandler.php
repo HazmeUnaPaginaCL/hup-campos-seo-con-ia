@@ -93,8 +93,6 @@ class PostHandler extends BaseHandler {
             wp_send_json_error( [ 'message' => 'ID de post requerido.' ] );
         }
 
-        // Recibir datos de mejora
-        $data = [];
         // Recibir datos de mejora. Los campos SEO salen del registro para que
         // coincidan con lo que la IA generó y con lo que el Writer va a guardar.
         $accepted = array_merge( [ 'post_title', 'post_content' ], Settings::fields_for( 'post' ) );

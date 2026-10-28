@@ -1583,6 +1583,11 @@ a.hup-seo-stat-card:hover {
 	gap:8px;
 }
 
+/* Columna que ocupa dos de las tres: textos largos del perfil del negocio */
+.hup-seo-form-row-3col .hup-seo-form-col--wide {
+	grid-column:span 2;
+}
+
 .hup-seo-form-row-3col .hup-seo-form-col .hup-seo-form-label {
 	margin-bottom:0;
 }
@@ -1747,6 +1752,34 @@ a.hup-seo-stat-card:hover {
 	margin-top:8px;
 	font-family:var(--hup-seo-mono);
 	font-size:12px;
+}
+
+/* ═══ Vista previa de «Mejorar post» ═══ */
+/* El contenido propuesto se ve renderizado, como quedará, pero acotado en
+   alto para que el botón de aplicar no quede a varias pantallas. */
+.hup-seo-improve-preview {
+	margin:16px 0;
+}
+.hup-seo-improve-preview summary {
+	cursor:pointer;
+	font-size:13px;
+	font-weight:600;
+	color:var(--hup-seo-primary);
+}
+.hup-seo-improve-preview__body {
+	margin-top:8px;
+	max-height:420px;
+	overflow-y:auto;
+	background:var(--hup-seo-bg);
+	border:1px solid var(--hup-seo-border);
+	border-radius:var(--hup-seo-radius);
+	padding:18px 20px;
+	font-size:13px;
+	line-height:1.6;
+}
+.hup-seo-improve-preview__body img {
+	max-width:100%;
+	height:auto;
 }
 
 /* ═══ Contador de caracteres del modal ═══ */

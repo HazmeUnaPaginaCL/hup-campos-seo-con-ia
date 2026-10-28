@@ -3,8 +3,8 @@ Contributors: hazmeunapagina
 Tags: seo, ai, openai, gemini, woocommerce
 Requires at least: 6.2
 Tested up to: 7.1
-Requires PHP: 8.3
-Stable tag: 1.0.0
+Requires PHP: 8.0
+Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -33,6 +33,7 @@ If you use RankMath, Yoast SEO or All In One SEO, the plugin detects it on its o
 
 **Other features**
 
+* A business profile that steers every text: site type (online store, services, fully digital business or blog), industry, audience, differentiators, delivery mode and geographic scope. A local business gets its city in titles and keywords; a national, international or online one gets keywords without a location.
 * Generation log with tokens and costs, with configurable automatic pruning.
 * Cost calculator by model and volume.
 * Customisable prompts with dynamic variables.
@@ -40,8 +41,8 @@ If you use RankMath, Yoast SEO or All In One SEO, the plugin detects it on its o
 
 **Supported AI providers**
 
-* OpenAI: GPT-5, GPT-5 Mini, GPT-5 Nano, GPT-4o, GPT-4o Mini, GPT-4 Turbo
-* Google: Gemini 3.7 Flash, Gemini 2.5 Flash, Gemini 2.5 Pro, Gemini 2.5 Flash Lite
+* OpenAI: GPT-6 Luna, GPT-6.1 Terra, GPT-6.1 Sol, GPT-6 Astra
+* Google: Gemini 3.5 Flash-Lite, Gemini 3.8 Flash, Gemini 4 Argon
 
 **Important:** this plugin relies on external AI services to work. See the "Third-Party Services" section below for what data is sent and to whom.
 
@@ -53,7 +54,7 @@ Developed with the assistance of AI tools under direct human supervision.
 2. Activate the plugin through the **Plugins** menu in WordPress.
 3. Go to **Campos SEO IA → Configuración**.
 4. Select your AI provider and enter your API key.
-5. Click "Probar conexión" (Test connection) and then "Guardar" (Save).
+5. Click "Verificar" (Test connection) and then "Guardar configuración" (Save).
 
 == Third-Party Services ==
 
@@ -65,7 +66,9 @@ Only when an administrator manually triggers an action in the plugin: completing
 
 **What data is sent**
 
-From the selected content: title, content or description (truncated to 2,000 characters), category and, for WooCommerce products, SKU, price and attributes. It also sends the configuration you define in the plugin: business description, country and language.
+From the selected content: title, the text of its content or description (up to 2,000 characters when completing fields, and up to 12,000 when improving a post), category and, for WooCommerce products, SKU, price and attributes. It also sends the business profile you define in the plugin (site type, industry, description, target audience, differentiators, geographic scope, area and delivery mode), plus the country and language.
+
+Every request asks the provider not to store it (`store: false`). This matters for Google Gemini, which since October 2026 stores requests by default for new paid-tier projects. Anything a provider keeps on its own terms (for example, for abuse monitoring) is governed by its policies.
 
 No personal user data, WordPress credentials, email addresses, or WooCommerce customer or order data is sent.
 
@@ -94,6 +97,8 @@ By using this plugin you accept the terms of the AI provider you configure. The 
 = Which fields does the AI fill in? =
 
 Every field it knows how to write: the product's long description, the short description or excerpt, the tags, the alt text of the featured image, the SEO title, the meta description, the focus keyword and the Open Graph title and description. On a post it does not touch the article body when completing fields: rewriting it is what the "Mejorar" (Improve) action is for.
+
+By default, "Completar" only fills the fields that are empty and only asks the AI for those, so nothing you wrote is replaced. If you want it to rewrite existing text too, enable "Sobrescribir" under **Configuración → Sitio y Prompts**.
 
 Where they are written depends on your setup: into your SEO plugin's fields if you have one, or into the plugin's own fields if you don't, in which case it prints the meta tags itself. You can also edit any of them by hand from the modal.
 
@@ -128,6 +133,25 @@ Uninstalling removes the configuration options, the log table, the temporary cac
 
 == Changelog ==
 
+= 1.0.1 =
+* New business profile: site type (online store, services, fully digital business or blog), industry, audience, differentiators, delivery mode and geographic scope (local, regional, national or international). National sites now get keywords without city names; local ones get their city in titles and keywords.
+* Rewritten default prompts, following current OpenAI and Gemini guidance. Prompts you never edited are upgraded automatically; customised ones are kept as they are.
+* "Completar" now fills only empty fields by default and asks the AI only for those. A new "Sobrescribir" option restores replacing existing text.
+* Generated descriptions and excerpts are saved through WordPress: posts keep a revision and WooCommerce refreshes its product data.
+* The edit modal only saves the fields you changed, so embeds and other HTML in the content are no longer stripped.
+* SEO fields can be edited in the modal without an SEO plugin, and the generated SEO title is now used as the page title.
+* "Mejorar" applies only the selected options, previews the full proposed content, warns about images or embeds that would be lost, saves proper HTML and refuses posts too long to rewrite in full.
+* Requests ask OpenAI and Gemini not to store them (store: false).
+* Lowered the minimum PHP version to 8.0.
+* Updated model catalogue: GPT-6 Luna, GPT-6.1 Terra, GPT-6.1 Sol and GPT-6 Astra for OpenAI; Gemini 3.5 Flash-Lite, Gemini 3.8 Flash and Gemini 4 Argon for Google. Models that the providers have retired or are retiring (GPT-4 Turbo, GPT-5, GPT-4o, Gemini 2.5 and Gemini 3.7 Flash) were removed; if you had one selected, the plugin switches to the provider's default.
+* New defaults: GPT-6 Luna and Gemini 3.8 Flash. Gemini 2.5 Flash is no longer available to new Google accounts.
+* Reasoning models now use a low reasoning effort and get enough output room, so responses are no longer cut short and the connection test works with GPT-5 and later.
+* OpenAI now uses Structured Outputs, like Gemini already did, so every response follows the expected format.
+* A response cut off by the token limit now shows an error instead of saving incomplete fields.
+* Logged costs now include input tokens and, for Gemini, reasoning tokens. Announced price increases apply automatically on their date.
+* Fixed accented characters and emoji being corrupted when a malformed response had to be recovered.
+* Responses are no longer cached when caching is not requested.
+
 = 1.0.0 =
 * First public release.
 * Fills in WooCommerce products and posts with AI: long description, short description or excerpt, tags, alt text, SEO title, meta description, focus keyword and Open Graph.
@@ -145,6 +169,9 @@ Uninstalling removes the configuration options, the log table, the temporary cac
 * API keys encrypted with AES-256-CBC.
 
 == Upgrade Notice ==
+
+= 1.0.1 =
+Adds a business profile (local or national SEO, store, services, digital or blog). "Completar" now only fills empty fields; enable "Sobrescribir" in Configuración if you relied on it replacing text. Supports PHP 8.0+ and current OpenAI and Gemini models.
 
 = 1.0.0 =
 First public release. No update steps required.

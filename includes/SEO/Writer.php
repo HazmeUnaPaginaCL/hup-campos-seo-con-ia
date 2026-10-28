@@ -20,11 +20,12 @@ class Writer {
      * @param string $write_target  'native', 'rankmath', 'yoast', 'aioseo'.
      * @param bool   $overwrite     Sobreescribir campos existentes.
      *
-     * @throws \RuntimeException Si el usuario actual no puede editar el post.
-     *                           Antes se hacía `return` en silencio, y quien
-     *                           llamaba daba la escritura por buena: el batch
-     *                           registraba 'ok' y la UI mostraba éxito sin que
-     *                           se hubiera guardado nada.
+     * @throws \RuntimeException Si el usuario actual no puede editar el post, o
+     *                           si WordPress rechaza guardar el contenido. Antes
+     *                           se hacía `return` en silencio, y quien llamaba
+     *                           daba la escritura por buena: el log registraba
+     *                           'ok' y la UI mostraba éxito sin que se hubiera
+     *                           guardado nada.
      */
     public static function write( int $post_id, array $fields, string $write_target = 'native', bool $overwrite = true ): void {
         if ( ! current_user_can( 'edit_post', $post_id ) ) {
@@ -126,35 +127,18 @@ class Writer {
         }
 
         if ( $needs_update ) {
-            // Escritura directa a propósito: wp_update_post() dispararía save_post,
-            // y en un lote de cientos de items eso encadena reindexados de los
-            // plugins SEO y de WooCommerce por cada fila. La alternativa habitual
-            // (remove_all_actions) destruiría hooks de terceros, así que se
-            // escribe la fila y se invalida la caché del post a mano.
-            global $wpdb;
-            $update_fields = [];
-            $format        = [];
+            // Por la API de WordPress y no con una query directa: así queda una
+            // revisión en los tipos que las admiten (los posts), WooCommerce
+            // refresca sus tablas y cachés del producto, y los plugins que
+            // escuchan save_post se enteran del cambio. Antes se escribía la
+            // fila a mano y el texto anterior se perdía sin rastro.
+            //
+            // wp_update_post() espera los datos con barras, como llegan de un
+            // formulario: sin wp_slash() se comería las barras invertidas.
+            $result = wp_update_post( wp_slash( $update_data ), true );
 
-            if ( isset( $update_data['post_content'] ) ) {
-                $update_fields['post_content'] = $update_data['post_content'];
-                $format[]                      = '%s';
-            }
-            if ( isset( $update_data['post_excerpt'] ) ) {
-                $update_fields['post_excerpt'] = $update_data['post_excerpt'];
-                $format[]                      = '%s';
-            }
-
-            if ( ! empty( $update_fields ) ) {
-                // Saltarse save_post no debe dejar el post con fecha de modificación
-                // vieja: se actualiza a mano, como haría wp_update_post().
-                $update_fields['post_modified']     = current_time( 'mysql' );
-                $update_fields['post_modified_gmt'] = current_time( 'mysql', true );
-                $format[]                           = '%s';
-                $format[]                           = '%s';
-
-                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Escritura deliberada sin save_post (ver comentario arriba); la caché se invalida con clean_post_cache().
-                $wpdb->update( $wpdb->posts, $update_fields, [ 'ID' => $post_id ], $format, [ '%d' ] );
-                clean_post_cache( $post_id );
+            if ( is_wp_error( $result ) ) {
+                throw new \RuntimeException( esc_html( $result->get_error_message() ) );
             }
         }
     }

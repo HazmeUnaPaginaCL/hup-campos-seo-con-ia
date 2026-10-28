@@ -23,10 +23,12 @@ $provider     = \HUP\CamposSeoIA\Settings::provider();
 $providers    = \HUP\CamposSeoIA\Settings::providers_display();
 $models       = \HUP\CamposSeoIA\Settings::models_catalog();
 $site_context = \HUP\CamposSeoIA\Settings::site_context();
+$profile      = \HUP\CamposSeoIA\Settings::business_profile();
 $country      = \HUP\CamposSeoIA\Settings::country();
 $language     = \HUP\CamposSeoIA\Settings::language();
 $usd_to_clp   = \HUP\CamposSeoIA\Settings::usd_to_clp();
 $delete_keys  = '1' === (string) \HUP\CamposSeoIA\Settings::get( 'delete_api_keys', '0' );
+$overwrite    = \HUP\CamposSeoIA\Settings::overwrite();
 $log_retention = (int) \HUP\CamposSeoIA\Settings::get( 'log_retention_days', \HUP\CamposSeoIA\Logger::DEFAULT_RETENTION_DAYS );
 $saved         = isset( $_GET['saved'] ) ? 1 : 0;
 
@@ -40,22 +42,22 @@ $prompt_types = [
     'product'  => [
         'label' => 'SEO de productos',
         'desc'  => 'Optimiza un producto WooCommerce existente.',
-        'vars'  => [ 'nombre', 'descripcion', 'categoria', 'sku', 'precio', 'atributos', 'pais', 'idioma', 'contexto_sitio' ],
+        'vars'  => [ 'nombre', 'descripcion', 'categoria', 'sku', 'precio', 'atributos', 'pais', 'idioma', 'contexto_sitio', 'rubro', 'alcance', 'zona', 'publico' ],
     ],
     'post_seo' => [
         'label' => 'SEO de posts existentes',
         'desc'  => 'Optimiza un post que ya existe. Solo genera campos SEO, no reescribe el contenido.',
-        'vars'  => [ 'nombre', 'descripcion', 'categoria', 'pais', 'idioma', 'contexto_sitio' ],
+        'vars'  => [ 'nombre', 'descripcion', 'categoria', 'pais', 'idioma', 'contexto_sitio', 'rubro', 'alcance', 'zona', 'publico' ],
     ],
     'post'     => [
         'label' => 'Crear post nuevo',
         'desc'  => 'Redacta un post completo desde cero (pestaña Blog → "Crear post con IA").',
-        'vars'  => [ 'tema', 'tono', 'largo', 'pais', 'idioma', 'contexto_sitio' ],
+        'vars'  => [ 'tema', 'tono', 'largo', 'pais', 'idioma', 'contexto_sitio', 'rubro', 'alcance', 'zona', 'publico' ],
     ],
     'improve'  => [
         'label' => 'Mejora de posts',
         'desc'  => 'Reescribe y mejora un post existente (pestaña Blog → "Mejorar post existente").',
-        'vars'  => [ 'titulo', 'contenido', 'instrucciones', 'pais', 'idioma', 'contexto_sitio' ],
+        'vars'  => [ 'titulo', 'contenido', 'instrucciones', 'pais', 'idioma', 'contexto_sitio', 'rubro', 'alcance', 'zona', 'publico' ],
     ],
 ];
 
@@ -184,7 +186,7 @@ $extra_tabs = (array) apply_filters( 'hcsai_extend_admin_tabs', [] );
                                 <li>Pégala en el campo de arriba y verifica la conexión</li>
                             </ol>
                             <p><strong>Importante:</strong> OpenAI requiere créditos prepagados. Ve a <a href="https://platform.openai.com/settings/organization/billing" target="_blank" rel="noopener">Billing</a> para agregar fondos (mínimo $5 USD).</p>
-                            <p>El modelo GPT-4o Mini es el más económico (~$0.60 USD por millón de tokens de salida).</p>
+                            <p>El modelo GPT-6 Luna es el más económico (~$0.50 USD por millón de tokens de salida).</p>
                         </details>
                         <?php endif; ?>
                     </div>
@@ -214,7 +216,9 @@ $extra_tabs = (array) apply_filters( 'hcsai_extend_admin_tabs', [] );
 
                 <p><strong>Cuándo se envían datos:</strong> solo cuando ejecutas manualmente una acción del plugin (completar los campos de un contenido, crear un post, mejorar un post o verificar la conexión). No se envía nada de forma automática, programada ni desde el frontend del sitio.</p>
 
-                <p><strong>Qué se envía:</strong> del contenido seleccionado, su título, contenido o descripción (recortada a 2.000 caracteres), categoría y —en productos WooCommerce— SKU, precio y atributos. Además, la descripción del negocio, el país y el idioma que defines en la pestaña "Sitio y Prompts". No se envían datos personales de usuarios, credenciales de WordPress ni datos de clientes o pedidos.</p>
+                <p><strong>Qué se envía:</strong> del contenido seleccionado, su título, el texto de su contenido o descripción (hasta 2.000 caracteres al completar campos, y hasta 12.000 al mejorar un post), categoría y —en productos WooCommerce— SKU, precio y atributos. Además, el perfil del negocio que defines en la pestaña "Sitio y Prompts" (tipo de sitio, rubro, descripción, público, diferenciadores, alcance, zona y modalidad), el país y el idioma. No se envían datos personales de usuarios, credenciales de WordPress ni datos de clientes o pedidos.</p>
+
+                <p><strong>Almacenamiento en el proveedor:</strong> cada petición se envía pidiendo que no se guarde (<code>store: false</code>), también en Google Gemini, que desde octubre de 2026 guarda por defecto las peticiones de los proyectos de pago nuevos. Lo que cada proveedor conserve por su cuenta (por ejemplo, para vigilar abusos) se rige por sus términos.</p>
 
                 <p><strong>A qué servicios:</strong></p>
                 <ul class="hup-seo-services-list">
@@ -268,15 +272,81 @@ $extra_tabs = (array) apply_filters( 'hcsai_extend_admin_tabs', [] );
     <!-- Tab: Sitio y Prompts -->
     <div class="hup-seo-tab-content" id="tab-prompts">
         <div class="hup-seo-card">
-            <div class="hup-seo-card-header"><h3>Contexto del sitio</h3></div>
+            <div class="hup-seo-card-header"><h3>Perfil del negocio</h3></div>
             <div class="hup-seo-card-body">
-                <div class="hup-seo-form-row">
-                    <label class="hup-seo-form-label">Descripción del negocio</label>
-                    <div class="hup-seo-form-field">
-                        <textarea name="hcsai_site_context" class="hup-seo-textarea" rows="3"
-                                  placeholder="Ej: Tienda online de ropa deportiva en Chile..."><?php echo esc_textarea( $site_context ); ?></textarea>
+                <p class="hup-seo-help" style="margin-bottom:16px;">Todo es opcional, pero cada dato cambia los textos: el tipo de sitio decide si se escribe para vender, captar clientes o informar; el alcance, si las palabras clave llevan ciudad o no. Se envía a la IA en cada generación.</p>
+
+                <div class="hup-seo-form-row hup-seo-form-row-3col">
+                    <div class="hup-seo-form-col">
+                        <label class="hup-seo-form-label" for="hcsai_tipo_sitio">Tipo de sitio</label>
+                        <select name="hcsai_tipo_sitio" id="hcsai_tipo_sitio" class="hup-seo-select">
+                            <option value="">Sin especificar</option>
+                            <?php foreach ( \HUP\CamposSeoIA\Settings::SITE_TYPES as $key => $label ) : ?>
+                            <option value="<?php echo esc_attr( $key ); ?>" <?php selected( $profile['tipo'], $key ); ?>><?php echo esc_html( $label ); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="hup-seo-form-col">
+                        <label class="hup-seo-form-label" for="hcsai_rubro">Rubro o temática</label>
+                        <input type="text" name="hcsai_rubro" id="hcsai_rubro" class="hup-seo-input"
+                               maxlength="<?php echo esc_attr( \HUP\CamposSeoIA\Settings::PROFILE_LIMITS['rubro'] ); ?>"
+                               value="<?php echo esc_attr( $profile['rubro'] ); ?>" placeholder="Ej: ropa deportiva, clínica dental, finanzas personales">
+                    </div>
+                    <div class="hup-seo-form-col">
+                        <label class="hup-seo-form-label" for="hcsai_modalidad">Cómo se entrega</label>
+                        <select name="hcsai_modalidad" id="hcsai_modalidad" class="hup-seo-select">
+                            <option value="">Sin especificar</option>
+                            <?php foreach ( \HUP\CamposSeoIA\Settings::DELIVERY as $key => $label ) : ?>
+                            <option value="<?php echo esc_attr( $key ); ?>" <?php selected( $profile['modalidad'], $key ); ?>><?php echo esc_html( $label ); ?></option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
                 </div>
+
+                <div class="hup-seo-form-row">
+                    <label class="hup-seo-form-label" for="hcsai_site_context">A qué se dedica</label>
+                    <div class="hup-seo-form-field">
+                        <textarea name="hcsai_site_context" id="hcsai_site_context" class="hup-seo-textarea" rows="3"
+                                  placeholder="Ej: Vendemos ropa deportiva para mujer, con tallas grandes y diseños propios."><?php echo esc_textarea( $site_context ); ?></textarea>
+                        <p class="hup-seo-help">Qué vende u ofrece, o de qué escribe el blog. Mejor sin ubicación: eso va en «Alcance».</p>
+                    </div>
+                </div>
+
+                <div class="hup-seo-form-row hup-seo-form-row-3col">
+                    <div class="hup-seo-form-col">
+                        <label class="hup-seo-form-label" for="hcsai_publico">Público objetivo</label>
+                        <textarea name="hcsai_publico" id="hcsai_publico" class="hup-seo-textarea" rows="2"
+                                  maxlength="<?php echo esc_attr( \HUP\CamposSeoIA\Settings::PROFILE_LIMITS['publico'] ); ?>"
+                                  placeholder="Ej: mujeres de 25 a 45 que entrenan en casa"><?php echo esc_textarea( $profile['publico'] ); ?></textarea>
+                    </div>
+                    <div class="hup-seo-form-col hup-seo-form-col--wide">
+                        <label class="hup-seo-form-label" for="hcsai_diferenciadores">Diferenciadores</label>
+                        <textarea name="hcsai_diferenciadores" id="hcsai_diferenciadores" class="hup-seo-textarea" rows="2"
+                                  maxlength="<?php echo esc_attr( \HUP\CamposSeoIA\Settings::PROFILE_LIMITS['diferenciadores'] ); ?>"
+                                  placeholder="Ej: envío gratis sobre $40.000, cambios sin costo, 10 años en el rubro"><?php echo esc_textarea( $profile['diferenciadores'] ); ?></textarea>
+                        <p class="hup-seo-help">La IA solo menciona envíos, garantías o promociones si están aquí.</p>
+                    </div>
+                </div>
+
+                <div class="hup-seo-form-row hup-seo-form-row-3col">
+                    <div class="hup-seo-form-col">
+                        <label class="hup-seo-form-label" for="hcsai_alcance">Alcance</label>
+                        <select name="hcsai_alcance" id="hcsai_alcance" class="hup-seo-select">
+                            <option value="">Sin especificar</option>
+                            <?php foreach ( \HUP\CamposSeoIA\Settings::SCOPES as $key => $label ) : ?>
+                            <option value="<?php echo esc_attr( $key ); ?>" <?php selected( $profile['alcance'], $key ); ?>><?php echo esc_html( $label ); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="hup-seo-form-col hup-seo-form-col--wide">
+                        <label class="hup-seo-form-label" for="hcsai_zona">Ciudad, comuna o región</label>
+                        <input type="text" name="hcsai_zona" id="hcsai_zona" class="hup-seo-input"
+                               maxlength="<?php echo esc_attr( \HUP\CamposSeoIA\Settings::PROFILE_LIMITS['zona'] ); ?>"
+                               value="<?php echo esc_attr( $profile['zona'] ); ?>" placeholder="Ej: Concepción">
+                        <p class="hup-seo-help">Local o regional: se usa en títulos y palabras clave. Nacional: es la sede, y se le pide a la IA que NO la nombre. Internacional: no se usa.</p>
+                    </div>
+                </div>
+
                 <div class="hup-seo-form-row hup-seo-form-row-3col">
                     <div class="hup-seo-form-col">
                         <label class="hup-seo-form-label">País</label>
@@ -299,7 +369,24 @@ $extra_tabs = (array) apply_filters( 'hcsai_extend_admin_tabs', [] );
                         <input type="number" name="hcsai_usd_to_clp" class="hup-seo-input" value="<?php echo esc_attr( $usd_to_clp ); ?>" min="1" step="1">
                     </div>
                 </div>
-                <p class="hup-seo-help">Valor del dólar para calcular costos en pesos chilenos.</p>
+                <p class="hup-seo-help">País: el mercado de la empresa. Idioma: el de los textos. Tasa USD a CLP: solo para mostrar costos en pesos chilenos.</p>
+
+                <details class="hup-seo-api-instructions">
+                    <summary>Ver cómo le llega este perfil a la IA</summary>
+                    <p>Es el texto que reemplaza a <code>{{contexto_sitio}}</code> en los prompts. Refleja lo guardado: después de cambiar algo, guarda para actualizarlo.</p>
+                    <textarea class="hup-seo-textarea hup-seo-prompt-sync__preview" rows="10" readonly><?php echo esc_textarea( \HUP\CamposSeoIA\Generator\PromptBuilder::business_context() ); ?></textarea>
+                </details>
+            </div>
+        </div>
+
+        <div class="hup-seo-card">
+            <div class="hup-seo-card-header"><h3>Completar campos</h3></div>
+            <div class="hup-seo-card-body">
+                <label class="hup-seo-switch-label">
+                    <input type="checkbox" name="hcsai_overwrite" value="1" <?php checked( $overwrite ); ?>>
+                    <span>Sobrescribir también los campos que ya tienen contenido</span>
+                </label>
+                <p class="hup-seo-help">Desactivado, «Completar» solo rellena lo que está vacío y no pide a la IA lo que ya está escrito. Activado, reemplaza también lo existente. Los productos de WooCommerce no guardan revisiones: una descripción reemplazada no se puede recuperar.</p>
             </div>
         </div>
 
