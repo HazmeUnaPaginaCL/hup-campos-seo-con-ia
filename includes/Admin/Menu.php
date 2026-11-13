@@ -28,9 +28,9 @@ class Menu {
         );
 
         // Enlaces antiguos, incluidos los que usa el addon, siguen abriendo.
-        add_submenu_page( null, 'Productos', 'Productos', 'manage_options', 'hcsai-productos', [ $this, 'render_productos' ] );
-        add_submenu_page( null, 'Blog', 'Blog', 'manage_options', 'hcsai-blog', [ $this, 'render_blog' ] );
-        add_submenu_page( null, 'Configuración', 'Configuración', 'manage_options', 'hcsai-configuracion', [ $this, 'render_configuracion' ] );
+        add_submenu_page( '', 'Productos', 'Productos', 'manage_options', 'hcsai-productos', [ $this, 'render_productos' ] );
+        add_submenu_page( '', 'Blog', 'Blog', 'manage_options', 'hcsai-blog', [ $this, 'render_blog' ] );
+        add_submenu_page( '', 'Configuración', 'Configuración', 'manage_options', 'hcsai-configuracion', [ $this, 'render_configuracion' ] );
     }
 
     /** Despacha las secciones de la página principal. */
@@ -39,7 +39,9 @@ class Menu {
             wp_die( esc_html__( 'Sin permisos.', 'hup-campos-seo-con-ia' ) );
         }
 
-        $tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'dashboard';
+        // Solo elige qué sección se muestra (lectura, sin cambios en datos), y
+        // el valor se limita a la lista del switch: no hace falta nonce.
+        $tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'dashboard'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         switch ( $tab ) {
             case 'productos':
                 $this->render_productos();

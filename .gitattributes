@@ -1,0 +1,7 @@
+# Saltos de línea LF también en Windows: los prompts por defecto se comparan
+# byte a byte (PromptSync) y un CRLF los haría parecer personalizados.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.zip binary
+*.mo binary

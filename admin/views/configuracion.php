@@ -264,7 +264,7 @@ if ( ! isset( $hcsai_panels[ $hcsai_panel ] ) ) {
                 <p>Cada generación deja una fila en el log con sus tokens y su costo. Un evento diario borra las entradas más antiguas para que la tabla no crezca sin límite.</p>
                 <div class="hup-field">
                     <label class="hup-label" for="hcsai-log-retention-days">Conservar durante</label>
-                    <div class="hup-control hup-seo-inline">
+                    <div class="hup-control hup-inline">
                         <input type="number" id="hcsai-log-retention-days" name="hcsai_log_retention_days" class="hup-input hup-input--sm"
                                value="<?php echo esc_attr( $log_retention ); ?>" min="0" step="1">
                         <span>días</span>

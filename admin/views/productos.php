@@ -322,7 +322,7 @@ if ( ! function_exists( 'hcsai_sort_arrow' ) ) {
                 <?php if ( $filter_cat ) : ?><input type="hidden" name="cat" value="<?php echo esc_attr( $filter_cat ); ?>"><?php endif; ?>
                 <?php if ( $filter_seo ) : ?><input type="hidden" name="seo_status" value="<?php echo esc_attr( $filter_seo ); ?>"><?php endif; ?>
                 <?php if ( $filter_score_lv ) : ?><input type="hidden" name="score_level" value="<?php echo esc_attr( $filter_score_lv ); ?>"><?php endif; ?>
-                <label class="hup-label" for="hcsai-per-page">Por página</label>
+                <label class="hup-hint" for="hcsai-per-page">Por página</label>
                 <select name="per_page" id="hcsai-per-page" class="hup-select hup-input--sm" onchange="this.form.submit()">
                     <?php foreach ( $per_page_opts as $pp ) : ?>
                     <option value="<?php echo esc_attr( $pp ); ?>" <?php selected( $per_page, $pp ); ?>><?php echo esc_html( $pp ); ?></option>

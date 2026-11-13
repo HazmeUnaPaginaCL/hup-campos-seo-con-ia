@@ -2,8 +2,10 @@
 /** Cabecera y navegación compartidas del panel HUP. */
 defined( 'ABSPATH' ) || exit;
 
-$hcsai_page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : 'hcsai';
-$hcsai_tab  = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'dashboard';
+// Navegación: solo decide qué ítem del menú se marca como activo y se valida
+// contra $hcsai_sections más abajo. No modifica datos, así que no lleva nonce.
+$hcsai_page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : 'hcsai'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+$hcsai_tab  = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'dashboard'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 $hcsai_aliases = [
     'hcsai-productos'     => 'productos',
     'hcsai-blog'          => 'blog',
@@ -45,7 +47,7 @@ $hcsai_nav_url = static function ( string $section ): string {
 <div class="wrap">
     <h1 class="screen-reader-text">HUP - Campos SEO con IA</h1>
     <?php settings_errors(); ?>
-    <div class="hup-app" style="--hup-plugin:#2271b1">
+    <div class="hup-app" style="--hup-plugin:#7c3aed">
         <header class="hup-header">
             <div class="hup-header__icon"><span class="dashicons dashicons-welcome-write-blog" aria-hidden="true"></span></div>
             <div class="hup-header__text">

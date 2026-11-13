@@ -29,7 +29,7 @@
 <body>
 <div class="hc-wrap">
   <h1>HUP Admin UI · Componentes</h1>
-  <p>HTML exacto de cada componente. El bloque oscuro bajo cada ejemplo es el código a copiar (se genera del propio ejemplo). Versión 1.2.0.</p>
+  <p>HTML exacto de cada componente. El bloque oscuro bajo cada ejemplo es el código a copiar (se genera del propio ejemplo). Versión 1.3.0.</p>
   <nav class="hc-toc" id="toc"></nav>
 
   <!-- ============ ESTRUCTURA ============ -->
@@ -399,6 +399,18 @@
     </div></div>
   </section>
 
+  <section class="hc-item">
+    <header><h3>Registro de procesos</h3><code>.hup-log · .hup-log__item · --success / --error / --info</code></header>
+    <div class="hc-demo hup-app"><div class="hc-pad">
+<div class="hup-log" role="log" aria-label="Resultados del proceso">
+  <div class="hup-log__item hup-log__item--success">[10:30:01] Producto generado correctamente</div>
+  <div class="hup-log__item hup-log__item--error">[10:30:04] No se pudo generar el segundo producto</div>
+  <div class="hup-log__item hup-log__item--info">[10:30:05] Proceso en pausa</div>
+</div>
+    </div></div>
+  </section>
+
+
   <!-- ============ DATOS ============ -->
   <div class="hc-cat" id="datos">Datos</div>
 
@@ -531,6 +543,62 @@
   <button type="button" class="hup-btn hup-btn--danger-outline hup-btn--sm" data-hup-confirm="¿Desconectar la cuenta?">Desconectar</button>
 </div>
 <div class="hup-preview">salida real del shortcode (do_shortcode)</div>
+    </div></div>
+  </section>
+
+  <!-- ============ 1.3.0 ============ -->
+  <div class="hc-cat" id="v130">Agregados 1.3.0</div>
+
+  <section class="hc-item">
+    <header><h3>Grupo de checkboxes con acciones, scroll y pie</h3><code>.hup-checkgroup · __actions · __body--scroll · __foot · .is-empty</code></header>
+    <div class="hc-demo hup-app"><div class="hc-pad">
+<div class="hup-checkgroup">
+  <div class="hup-checkgroup__head">
+    <label class="hup-check"><input type="checkbox" checked> Región de Atacama</label>
+    <div class="hup-checkgroup__actions">
+      <button type="button" class="hup-btn hup-btn--ghost hup-btn--sm">Todas</button>
+      <button type="button" class="hup-btn hup-btn--ghost hup-btn--sm">Ninguna</button>
+    </div>
+    <span class="hup-count">3/9</span>
+  </div>
+  <div class="hup-checkgroup__body hup-checkgroup__body--scroll">
+    <label class="hup-check"><input type="checkbox" checked> Caldera</label>
+    <label class="hup-check"><input type="checkbox" checked> Copiapó</label>
+    <label class="hup-check"><input type="checkbox" checked> Diego de Almagro</label>
+    <label class="hup-check"><input type="checkbox"> Vallenar</label>
+  </div>
+  <div class="hup-checkgroup__foot">
+    <span class="hup-group-label">Pie del grupo</span>
+  </div>
+</div>
+    </div></div>
+  </section>
+
+  <section class="hc-item">
+    <header><h3>Barra de herramientas</h3><code>.hup-toolbar</code></header>
+    <div class="hc-demo hup-app"><div class="hc-pad">
+<div class="hup-toolbar">
+  <div class="hup-search"><span class="dashicons dashicons-search"></span><input type="search" class="hup-input" placeholder="Buscar comuna…"></div>
+  <div class="hup-btn-group"><button type="button">Seleccionar</button><button type="button">Quitar</button><button type="button">Invertir</button></div>
+</div>
+    </div></div>
+  </section>
+
+  <section class="hc-item">
+    <header><h3>Punto de color, insignia PRO y lista de verificación</h3><code>.hup-dot (--hup-dot) · .hup-badge--pro · .hup-checklist li.is-ok / .is-fail</code></header>
+    <div class="hc-demo hup-app"><div class="hc-pad">
+<p class="hup-inline"><span class="hup-dot" style="--hup-dot:#378ADD"></span> Zona Santiago <span class="hup-badge hup-badge--pro">PRO</span></p>
+<ul class="hup-checklist">
+  <li class="is-ok">Chile está entre los países de envío</li>
+  <li class="is-fail"><span>La comuna pertenece a una zona de despacho<small>Agrégala a una zona.</small></span></li>
+</ul>
+    </div></div>
+  </section>
+
+  <section class="hc-item">
+    <header><h3>Toast de error</h3><code>HUP.toast('No se pudo guardar', 'error')</code></header>
+    <div class="hc-demo hup-app"><div class="hc-pad">
+<button type="button" class="hup-btn hup-btn--secondary" onclick="HUP.toast('No se pudo guardar', 'error')">Probar toast de error</button>
     </div></div>
   </section>
 </div>

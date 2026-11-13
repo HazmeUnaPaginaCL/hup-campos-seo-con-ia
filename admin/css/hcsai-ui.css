@@ -1,19 +1,46 @@
-/* Elementos propios de Campos SEO con IA sobre el sistema HUP. */
+/*
+ * Piezas propias de Campos SEO con IA sobre el sistema HUP (hup-ui).
+ *
+ * Todo va dentro de .hup-app y usa los tokens de hup-ui/tokens.css. Las clases
+ * hup-seo-* se conservan porque las usan admin.js y el addon (badges de score
+ * y modal de campos); sus estilos viven aquí desde la 1.1.0, que retiró la
+ * hoja antigua hup-seo.css.
+ */
+
+/* ── Estructura ─────────────────────────────────────────────────────────── */
 .hup-app .hcsai-panel { display: flex; flex-direction: column; gap: 20px; }
 .hup-app .hcsai-table-scroll { max-width: 100%; overflow-x: auto; }
 .hup-app .hcsai-table-scroll .hup-table { min-width: 680px; }
 .hup-app .hcsai-grid-span-2 { grid-column: span 2; }
-.hup-app .hup-field > .hup-hint { grid-column: 2; }
+
+/* Los párrafos del cuerpo de tarjeta ya se separan con el gap del cuerpo. */
+.hup-app .hup-card__body > p,
+.hup-app .hup-card__body > ul { margin: 0; }
+
+/* En una fila de campo (etiqueta | control) la ayuda va bajo el control. En
+   un campo apilado hay una sola columna y la ayuda la sigue. */
+.hup-app .hup-field:not(.hup-field--stacked) > .hup-hint { grid-column: 2; }
+
+/* ── Filtros, paginación y orden de la tabla ───────────────────────────── */
 .hup-app .hup-seo-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .hup-app .hup-seo-filters .hup-input { width: 200px; }
 .hup-app .hup-seo-filters .hup-select { width: auto; min-width: 135px; }
-.hup-app .hup-seo-create-form { display: flex; flex-direction: column; gap: 20px; }
-.hup-app .hup-seo-checkboxes { display: flex; flex-wrap: wrap; gap: 12px; }
-.hup-app .hup-seo-batch-actions { display: flex; align-items: center; gap: 8px; }
-.hup-app .hup-seo-pagination { margin-top: 16px; }
+.hup-app .hup-pager { margin-top: 16px; }
+.hup-app .hup-pager .hup-select { width: auto; }
+/* paginate_links() marca la página actual con .current, no con .is-current. */
+.hup-app .hup-pager__links .current { background: var(--hup-primary); border-color: var(--hup-primary); color: #fff; }
+.hup-app .hup-pager__links .dots { border-color: transparent; background: none; }
 .hup-app .hcsai-sort-link { color: var(--hup-muted); text-decoration: none; white-space: nowrap; }
 .hup-app .hcsai-sort-arrow { color: var(--hup-subtle); font-size: 12px; }
-.hup-app .hup-pager .hup-label { padding: 0; }
+
+/* ── Blog ──────────────────────────────────────────────────────────────── */
+.hup-app .hup-seo-create-form { display: flex; flex-direction: column; gap: 20px; }
+.hup-app .hup-seo-checkboxes { display: flex; flex-wrap: wrap; gap: 12px; }
+.hup-app .hup-seo-improve-preview summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--hup-primary); }
+.hup-app .hup-seo-improve-preview__body { margin-top: 8px; max-height: 420px; overflow-y: auto; padding: 18px 20px; border: 1px solid var(--hup-border); border-radius: var(--hup-radius-md); background: var(--hup-surface-2); font-size: 13px; line-height: 1.6; }
+.hup-app .hup-seo-improve-preview__body img { max-width: 100%; height: auto; }
+
+/* ── Escaneo ───────────────────────────────────────────────────────────── */
 .hup-app .hcsai-scan-progress { margin-top: 16px; }
 .hup-app .hcsai-scan-progress__body { flex: 1; display: flex; flex-direction: column; gap: 10px; }
 .hup-app .sc-log { max-height: 150px; overflow: auto; padding: 8px 10px; border: 1px solid var(--hup-border); border-radius: var(--hup-radius-sm); background: var(--hup-surface); font: 12px/1.6 ui-monospace, SFMono-Regular, Consolas, monospace; }
@@ -22,24 +49,70 @@
 .hup-app .sc-log .is-error { color: var(--hup-danger); }
 .hup-app .hcsai-highlight { outline: 2px solid var(--hup-primary); outline-offset: 3px; }
 .hup-app .hcsai-log-error { max-width: 220px; margin-top: 4px; color: var(--hup-danger); font-size: 11px; overflow-wrap: anywhere; }
-.hup-app .hup-seo-score { border-radius: 12px; font-weight: 600; }
+
+/* ── Badge de score (4 niveles: 0-24, 25-49, 50-74, 75-100) ────────────── */
+.hup-app .hup-seo-score { display: inline-block; min-width: 44px; padding: 3px 10px; border: 1px solid transparent; border-radius: 12px; font-size: 12px; font-weight: 600; text-align: center; line-height: normal; }
 .hup-app .hup-seo-score-score-0 { color: var(--hup-danger); background: var(--hup-danger-soft); }
-.hup-app .hup-seo-score-score-1, .hup-app .hup-seo-score-score-2 { color: var(--hup-warning); background: var(--hup-warning-soft); }
+.hup-app .hup-seo-score-score-1 { color: #c2410c; background: #ffedd5; }
+.hup-app .hup-seo-score-score-2 { color: var(--hup-warning); background: var(--hup-warning-soft); }
 .hup-app .hup-seo-score-score-3 { color: var(--hup-success); background: var(--hup-success-soft); }
-.hup-app .hup-seo-modal-section { border-color: var(--hup-border); border-radius: var(--hup-radius-md); }
-.hup-app .hup-seo-modal-section .hup-field { margin-top: 16px; }
-.hup-app .hup-seo-modal-section .hup-field > .hup-input { grid-column: 2; max-width: none; }
-.hup-app .hup-seo-modal-section .hup-field > .hup-seo-char-count { grid-column: 2; }
-.hup-app .hup-seo-modal-section .hup-field > .hup-hint { grid-column: 2; }
-.hup-app .hup-seo-modal-status { border-radius: var(--hup-radius-md); }
-.hup-app .hup-seo-score-detail { border-radius: var(--hup-radius-md); border-color: var(--hup-border); }
+.hup-app .hup-seo-score--link { font-family: inherit; cursor: pointer; }
+.hup-app .hup-seo-score--link:hover,
+.hup-app .hup-seo-score--link:focus-visible { border-color: currentColor; outline: none; }
+
+/* ── Modal de campos ───────────────────────────────────────────────────── */
+.hup-app .hup-seo-modal-section { margin-bottom: 20px; overflow: hidden; border: 1px solid var(--hup-border); border-radius: var(--hup-radius-md); background: var(--hup-surface); }
+.hup-app .hup-seo-modal-section-header { display: flex; align-items: center; gap: 10px; padding: 12px 18px; border-bottom: 1px solid var(--hup-border); background: var(--hup-surface-2); }
+.hup-app .hup-seo-modal-section-header h4 { margin: 0; font-size: 14px; font-weight: 600; }
+.hup-app .hup-seo-modal-section .hup-field { margin: 16px 18px 0; }
+.hup-app .hup-seo-modal-section .hup-field:last-child { margin-bottom: 18px; }
+.hup-app .hup-seo-modal-section .hup-field > .hup-input,
+.hup-app .hup-seo-modal-section .hup-field > .hup-seo-char-count,
+.hup-app .hup-seo-modal-section .hup-field > .hup-hint { grid-column: 2; max-width: none; }
+.hup-app .hup-seo-char-count { display: block; margin-top: 4px; text-align: right; font: 11px ui-monospace, SFMono-Regular, Consolas, monospace; color: var(--hup-subtle); }
+
+.hup-app .hup-seo-modal-status { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 20px; padding: 12px 18px; border: 1px solid var(--hup-border); border-radius: var(--hup-radius-md); background: var(--hup-surface-2); font-size: 13px; }
+.hup-app .hup-seo-modal-status-badge { display: flex; align-items: center; gap: 8px; font-weight: 500; }
+.hup-app .hup-seo-status-native,
+.hup-app .hup-seo-status-plugin { padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+.hup-app .hup-seo-status-native { color: var(--hup-warning); background: var(--hup-warning-soft); }
+.hup-app .hup-seo-status-plugin { color: var(--hup-success); background: var(--hup-success-soft); }
+.hup-app .hup-seo-modal-status-score { padding: 6px 14px; border-radius: 999px; background: var(--hup-primary-soft); color: var(--hup-primary); font-size: 16px; font-weight: 700; }
+
+/* Desglose del score */
+.hup-app .hup-seo-score-detail { margin-bottom: 20px; padding: 16px 18px; border: 1px solid var(--hup-border); border-radius: var(--hup-radius-md); background: var(--hup-surface-2); }
+.hup-app .hup-seo-score-detail__head h4 { margin: 0 0 6px; font-size: 14px; }
+.hup-app .hup-seo-score-detail__head p { margin: 0 0 14px; font-size: 12px; color: var(--hup-muted); }
+.hup-app .hup-seo-score-detail__list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.hup-app .hup-seo-score-detail__item { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0; padding: 8px 11px; border: 1px solid var(--hup-border); border-left: 3px solid var(--hup-border); border-radius: var(--hup-radius-sm); background: var(--hup-surface); font-size: 12px; }
 .hup-app .hup-seo-score-detail__item.is-ok { border-left-color: var(--hup-success); }
 .hup-app .hup-seo-score-detail__item.is-parcial { border-left-color: var(--hup-warning); }
 .hup-app .hup-seo-score-detail__item.is-vacio { border-left-color: var(--hup-danger); }
-.hup-app .hcsai-toast--error { background: var(--hup-danger); }
+.hup-app .hup-seo-score-detail__icon { width: 16px; height: 16px; font-size: 16px; }
+.hup-app .is-ok > .hup-seo-score-detail__icon { color: var(--hup-success); }
+.hup-app .is-parcial > .hup-seo-score-detail__icon { color: var(--hup-warning); }
+.hup-app .is-vacio > .hup-seo-score-detail__icon { color: var(--hup-danger); }
+.hup-app .hup-seo-score-detail__label { font-weight: 600; }
+.hup-app .hup-seo-score-detail__pts { margin-left: auto; font: 11px ui-monospace, SFMono-Regular, Consolas, monospace; color: var(--hup-muted); }
+.hup-app .hup-seo-score-detail__nota { flex-basis: 100%; color: var(--hup-muted); }
+.hup-app .hup-seo-score-detail__manual { padding: 1px 8px; border-radius: 999px; background: var(--hup-primary-soft); color: var(--hup-primary); font-size: 11px; font-weight: 600; }
+.hup-app .hup-seo-field-score { margin-left: 8px; padding: 1px 8px; border-radius: 999px; font: 400 11px ui-monospace, SFMono-Regular, Consolas, monospace; }
+.hup-app .hup-seo-field-score.is-ok { color: var(--hup-success); background: var(--hup-success-soft); }
+.hup-app .hup-seo-field-score.is-parcial { color: var(--hup-warning); background: var(--hup-warning-soft); }
+.hup-app .hup-seo-field-score.is-vacio { color: var(--hup-danger); background: var(--hup-danger-soft); }
+
+/* ── Configuración ─────────────────────────────────────────────────────── */
+.hup-app .hup-seo-services-list { margin: 0; padding-left: 20px; list-style: disc; }
+.hup-app .hup-seo-services-list li { margin-bottom: 6px; line-height: 1.6; }
+.hup-app .hup-seo-conn-result { font-size: 13px; font-weight: 500; }
+.hup-app .hup-seo-conn-ok { color: var(--hup-success); }
+.hup-app .hup-seo-conn-error { color: var(--hup-danger); }
+.hup-app .hup-seo-prompt-sync summary { cursor: pointer; font-size: 13px; color: var(--hup-primary); }
+.hup-app .hup-seo-prompt-sync__preview { margin-top: 8px; font: 12px ui-monospace, SFMono-Regular, Consolas, monospace; }
+
 @media (max-width: 960px) {
   .hup-app .hcsai-grid-span-2 { grid-column: auto; }
-  .hup-app .hup-field > .hup-hint,
+  .hup-app .hup-field:not(.hup-field--stacked) > .hup-hint,
   .hup-app .hup-seo-modal-section .hup-field > .hup-input,
   .hup-app .hup-seo-modal-section .hup-field > .hup-seo-char-count,
   .hup-app .hup-seo-modal-section .hup-field > .hup-hint { grid-column: 1; }

@@ -30,15 +30,17 @@ document.addEventListener('click', function (e) {
   if (btn && !window.confirm(btn.getAttribute('data-hup-confirm'))) e.preventDefault();
 });
 
-/* Toast: HUP.toast('Cambios guardados') */
+/* Toast: HUP.toast('Cambios guardados') · error: HUP.toast('No se pudo guardar', 'error') */
 window.HUP = window.HUP || {};
-HUP.toast = function (msg) {
+HUP.toast = function (msg, type) {
   var el = document.createElement('div');
-  el.className = 'hup-toast';
-  el.innerHTML = '<span class="dashicons dashicons-yes-alt"></span>';
+  var isError = type === 'error';
+  el.className = 'hup-toast' + (isError ? ' hup-toast--error' : '');
+  el.setAttribute('role', isError ? 'alert' : 'status');
+  el.innerHTML = '<span class="dashicons dashicons-' + (isError ? 'warning' : 'yes-alt') + '"></span>';
   el.appendChild(document.createTextNode(msg));
   (document.querySelector('.hup-app') || document.body).appendChild(el);
-  setTimeout(function () { el.remove(); }, 2400);
+  setTimeout(function () { el.remove(); }, isError ? 4000 : 2400);
 };
 /* Modal: <button data-hup-modal="#mi-modal">; dentro, [data-hup-close] cierra */
 document.addEventListener('click', function (e) {

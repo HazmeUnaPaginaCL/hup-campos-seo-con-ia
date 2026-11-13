@@ -28,17 +28,11 @@ class Assets {
 
         wp_enqueue_style( 'dashicons' );
 
-        // El handle antiguo sigue disponible para las extensiones actuales. Sus
-        // controles específicos todavía dependen de las clases hup-seo-*.
-        wp_enqueue_style(
-            'hup-seo-admin',
-            HCSAI_URL . 'admin/css/hup-seo.css',
-            [],
-            HCSAI_VERSION
-        );
-
+        // hup-ui (sistema de diseño HUP) y encima las piezas propias del plugin.
+        // La hoja antigua hup-seo.css se retiró en la 1.1.0: sus reglas en uso
+        // pasaron a hcsai-ui.css.
         $ui_version = (string) filemtime( HCSAI_PATH . 'hup-ui/hup-admin.css' );
-        wp_enqueue_style( 'hup-ui-tokens-hcsai', HCSAI_URL . 'hup-ui/tokens.css', [ 'hup-seo-admin' ], (string) filemtime( HCSAI_PATH . 'hup-ui/tokens.css' ) );
+        wp_enqueue_style( 'hup-ui-tokens-hcsai', HCSAI_URL . 'hup-ui/tokens.css', [], (string) filemtime( HCSAI_PATH . 'hup-ui/tokens.css' ) );
         wp_enqueue_style( 'hup-ui-hcsai', HCSAI_URL . 'hup-ui/hup-admin.css', [ 'hup-ui-tokens-hcsai' ], $ui_version );
         wp_enqueue_style( 'hcsai-ui', HCSAI_URL . 'admin/css/hcsai-ui.css', [ 'hup-ui-hcsai' ], (string) filemtime( HCSAI_PATH . 'admin/css/hcsai-ui.css' ) );
         wp_enqueue_script( 'hup-ui-hcsai', HCSAI_URL . 'hup-ui/hup-admin.js', [], (string) filemtime( HCSAI_PATH . 'hup-ui/hup-admin.js' ), true );

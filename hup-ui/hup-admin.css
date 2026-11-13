@@ -1,4 +1,4 @@
-/* HUP Admin UI 1.2.0 — componentes.
+/* HUP Admin UI 1.3.0 — componentes.
    Requiere tokens.css (cárguelo antes, como dependencia).
    Todo vive dentro de .hup-app; prefijo .hup- para no chocar con WP ni otros plugins.
    NO editar por plugin: si falta algo, agréguelo aquí y suba la versión (ver CHANGELOG.md). */
@@ -36,6 +36,8 @@
 .hup-nav__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
 .hup-nav__list li { margin: 0; }
 .hup-nav__item { display: flex; align-items: center; gap: 10px; margin: 0 10px; padding: 10px 14px; border-radius: 10px; font-size: 13px; font-weight: 500; color: var(--hup-nav-ink); }
+.hup-app .hup-nav__item:not(:hover) { color: var(--hup-nav-ink); } /* gana a .hup-app a */
+.hup-app .hup-nav__item.is-active { color: var(--hup-nav-active-ink); }
 .hup-app .hup-nav__item:hover { color: var(--hup-nav-active-ink); text-decoration: none; background: var(--hup-nav-active-bg); }
 .hup-nav__item .dashicons { font-size: 18px; width: 18px; height: 18px; color: var(--hup-nav-icon); }
 .hup-nav__item.is-active { background: var(--hup-nav-active-bg); color: var(--hup-nav-active-ink); font-weight: 600; }
@@ -49,9 +51,10 @@
 .hup-grid--aside { grid-template-columns: minmax(0, 1fr) 320px; }
 .hup-grid--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .hup-grid--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.hup-stack { display: flex; flex-direction: column; gap: 20px; }
+.hup-stack { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.hup-stack > * { min-width: 0; }
 @media (max-width: 1100px) { .hup-grid--aside, .hup-grid--2, .hup-grid--3 { grid-template-columns: minmax(0, 1fr); } }
-@media (max-width: 782px) { .hup-app { margin: 10px 10px 10px 0; } .hup-layout { grid-template-columns: 1fr; } .hup-nav__list { flex-direction: row; overflow-x: auto; } .hup-nav__item { border-left: 0; border-bottom: 3px solid transparent; white-space: nowrap; } .hup-nav__item.is-active { border-bottom-color: var(--hup-primary); } .hup-nav__footer { display: none; } .hup-header__support { display: none; } }
+@media (max-width: 782px) { .hup-app { margin: 10px 10px 10px 0; } .hup-layout { grid-template-columns: minmax(0, 1fr); } .hup-nav__list { flex-direction: row; overflow-x: auto; } .hup-nav__item { border-left: 0; border-bottom: 3px solid transparent; white-space: nowrap; } .hup-nav__item.is-active { border-bottom-color: var(--hup-primary); } .hup-nav__footer { display: none; } .hup-header__support { display: none; } }
 
 /* Card */
 .hup-card { background: var(--hup-surface); border: 1px solid var(--hup-border); border-radius: var(--hup-radius); box-shadow: var(--hup-shadow); }
@@ -63,7 +66,7 @@
 .hup-card--danger .hup-card__title { color: var(--hup-danger); }
 
 /* Field rows */
-.hup-field { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 16px; align-items: start; }
+.hup-field { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 16px; align-items: start; min-width: 0; }
 .hup-field--stacked { grid-template-columns: 1fr; gap: 6px; }
 .hup-label { display: flex; align-items: center; gap: 6px; padding-top: 9px; font-size: 13px; font-weight: 600; }
 .hup-field--stacked .hup-label { padding-top: 0; }
@@ -207,6 +210,13 @@
 @keyframes hup-spin { to { transform: rotate(360deg); } }
 .hup-progress { height: 8px; border-radius: 4px; background: #eef0f4; overflow: hidden; }
 .hup-progress > span { display: block; height: 100%; border-radius: 4px; background: var(--hup-primary); transition: width .3s; }
+/* Registro de procesos: <div class="hup-log" role="log"><div class="hup-log__item hup-log__item--success">…</div></div> */
+.hup-log { max-height: 260px; overflow: auto; padding: 8px 14px; border: 1px solid var(--hup-border); border-radius: var(--hup-radius-md); background: var(--hup-surface-2); font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.hup-log__item { padding: 6px 0; border-bottom: 1px solid var(--hup-border); overflow-wrap: anywhere; }
+.hup-log__item:last-child { border-bottom: 0; }
+.hup-log__item--success { color: var(--hup-success); }
+.hup-log__item--error { color: var(--hup-danger); }
+.hup-log__item--info { color: var(--hup-muted); }
 .hup-skeleton { display: block; height: 12px; border-radius: 6px; background: var(--hup-border); animation: hup-pulse 1.4s ease-in-out infinite; }
 @keyframes hup-pulse { 50% { opacity: .45; } }
 .hup-empty { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; padding: 32px 24px 36px; }
@@ -219,6 +229,7 @@
 .hup-pager__links .is-current { background: var(--hup-primary); border-color: var(--hup-primary); color: #fff; }
 /* Tarjetas de opción (radio) */
 .hup-choices { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+@media (max-width: 600px) { .hup-choices { grid-template-columns: minmax(0, 1fr); } }
 .hup-choice { position: relative; display: flex; gap: 12px; align-items: flex-start; padding: 16px; border-radius: 14px; border: 1.5px solid #e6e8ee; background: #fff; cursor: pointer; }
 .hup-choice input { position: absolute; opacity: 0; }
 .hup-choice__dot { width: 18px; height: 18px; flex: none; border-radius: 50%; border: 1.5px solid #c3c9d4; background: #fff; margin-top: 1px; }
@@ -237,6 +248,7 @@
 .hup-checkgroup__head { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid #f0f1f5; font-size: 13px; font-weight: 600; }
 .hup-checkgroup__head .hup-count { margin-left: auto; font-size: 12px; font-weight: 400; color: var(--hup-muted); }
 .hup-checkgroup__body { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 16px; padding: 14px; }
+@media (max-width: 600px) { .hup-checkgroup__body { grid-template-columns: minmax(0, 1fr); } }
 /* Estado del sistema */
 .hup-status-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
 .hup-status-row > div { display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; border-radius: var(--hup-radius-md); background: var(--hup-surface-2); }
@@ -270,7 +282,7 @@
 .hup-accordion summary::before { content: "\f345"; font-family: dashicons; font-size: 16px; transition: transform .15s; }
 .hup-accordion[open] summary::before { transform: rotate(90deg); }
 .hup-accordion > div { padding: 0 14px 14px 38px; font-size: 13px; color: var(--hup-muted); }
-.hup-accordion > p, .hup-accordion > ol { margin: 0; padding: 0 14px 14px 38px; font-size: 13px; color: var(--hup-muted); }
+.hup-accordion > p, .hup-accordion > ol, .hup-accordion > ul { margin: 0; padding: 0 14px 14px 38px; font-size: 13px; color: var(--hup-muted); }
 /* Cuenta conectada */
 .hup-account { display: flex; align-items: center; gap: 14px; padding: 14px; border: 1px solid var(--hup-border); border-radius: var(--hup-radius-md); }
 .hup-avatar { width: 40px; height: 40px; flex: none; border-radius: 50%; background: var(--hup-primary-soft); color: var(--hup-primary); display: grid; place-items: center; font-weight: 600; }
@@ -291,3 +303,26 @@
 .hup-modal__scroll { min-height: 0; overflow-y: auto; }
 .hup-modal__body { padding: 24px 24px 8px; display: flex; gap: 14px; }
 .hup-modal__foot { display: flex; justify-content: flex-end; gap: 8px; padding: 16px 24px 20px; }
+.hup-toast--error { background: var(--hup-danger); }
+
+/* ===== 1.3.0 — agregado al adaptar HUP - Kit Ecommerce Chile ===== */
+/* Punto de color (dato del usuario, p. ej. color de una zona): <span class="hup-dot" style="--hup-dot:#378ADD"></span> */
+.hup-dot { display: inline-block; width: 10px; height: 10px; flex: none; border-radius: 50%; background: var(--hup-dot, var(--hup-primary)); box-shadow: 0 0 0 2px #fff, 0 0 0 3px var(--hup-border-strong); }
+/* Badge de función de pago: <span class="hup-badge hup-badge--pro">PRO</span> */
+.hup-badge--pro { height: 20px; padding: 0 8px; font-size: 11px; letter-spacing: .04em; background: var(--hup-ink); color: #fff; }
+/* Grupo de checkboxes: acciones en la cabecera, cuerpo con scroll y pie */
+.hup-checkgroup__actions { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+.hup-checkgroup__actions + .hup-count { margin-left: 8px; }
+.hup-checkgroup__body--scroll { max-height: 236px; overflow-y: auto; }
+.hup-checkgroup__foot { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-top: 1px solid #f0f1f5; background: var(--hup-surface-2); border-radius: 0 0 var(--hup-radius-md) var(--hup-radius-md); }
+.hup-checkgroup.is-empty { border-color: #f1d9a8; }
+/* Barra de herramientas sobre una lista: búsqueda + acciones */
+.hup-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.hup-toolbar .hup-search { flex: 1; min-width: 220px; }
+/* Resultado de una verificación: <ul class="hup-checklist"><li class="is-ok|is-fail">…</li></ul> */
+.hup-checklist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
+.hup-checklist li { display: flex; gap: 8px; align-items: flex-start; margin: 0; }
+.hup-checklist li::before { font-family: dashicons; font-size: 18px; line-height: 1.1; flex: none; }
+.hup-checklist li.is-ok::before { content: "\f12a"; color: var(--hup-success); }
+.hup-checklist li.is-fail::before { content: "\f153"; color: var(--hup-danger); }
+.hup-checklist small { display: block; color: var(--hup-muted); font-size: 12px; }

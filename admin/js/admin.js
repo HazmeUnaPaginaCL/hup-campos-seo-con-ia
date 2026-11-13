@@ -14,15 +14,9 @@
   }
 
   // msg puede venir del servidor y contener el texto de error que devolvió la
-  // API de IA, así que se inserta con .text() y nunca concatenado en HTML.
+  // API de IA: HUP.toast lo inserta como nodo de texto, nunca como HTML.
   function toast(msg, type) {
-    var icon = type === 'error' ? 'dashicons-warning' : 'dashicons-yes-alt';
-    var $t = $('<div class="hup-toast"></div>')
-      .toggleClass('hcsai-toast--error', type === 'error')
-      .append($('<span class="dashicons"></span>').addClass(icon))
-      .append(document.createTextNode(msg));
-    $('.hup-app').append($t);
-    setTimeout(function () { $t.remove(); }, 3500);
+    window.HUP.toast(String(msg || ''), type);
   }
 
   // El badge de score se repinta desde tres sitios (completar, guardar y
