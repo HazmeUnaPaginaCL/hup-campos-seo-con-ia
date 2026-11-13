@@ -4,7 +4,7 @@ Tags: seo, ai, openai, gemini, woocommerce
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.0.1
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -133,6 +133,11 @@ Uninstalling removes the configuration options, the log table, the temporary cac
 
 == Changelog ==
 
+= 1.1.0 =
+* Redesigned admin panel with the shared HUP design: one page with Dashboard, Productos, Blog and Configuración sections, consistent cards, forms and notifications. Old menu links keep working.
+* Fixed misaligned fields in the business profile form.
+* Removed the legacy admin stylesheet, so admin pages load less CSS.
+
 = 1.0.1 =
 * New business profile: site type (online store, services, fully digital business or blog), industry, audience, differentiators, delivery mode and geographic scope (local, regional, national or international). National sites now get keywords without city names; local ones get their city in titles and keywords.
 * Rewritten default prompts, following current OpenAI and Gemini guidance. Prompts you never edited are upgraded automatically; customised ones are kept as they are.
@@ -170,6 +175,9 @@ Uninstalling removes the configuration options, the log table, the temporary cac
 * API keys encrypted with AES-256-CBC.
 
 == Upgrade Notice ==
+
+= 1.1.0 =
+Admin panel redesign. No settings change.
 
 = 1.0.1 =
 Adds a business profile (local or national SEO, store, services, digital or blog). "Completar" now only fills empty fields; enable "Sobrescribir" in Configuración if you relied on it replacing text. Supports PHP 8.0+ and current OpenAI and Gemini models.
