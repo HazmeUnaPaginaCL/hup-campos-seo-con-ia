@@ -117,3 +117,7 @@
   .hup-app .hup-seo-modal-section .hup-field > .hup-seo-char-count,
   .hup-app .hup-seo-modal-section .hup-field > .hup-hint { grid-column: 1; }
 }
+
+/* Los cuadros de texto (perfil y prompts) usan todo el ancho de su espacio:
+   el tope de 420px de hup-ui es para campos de una línea. */
+.hup-app textarea.hup-input { max-width: none; }

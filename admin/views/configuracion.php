@@ -264,12 +264,14 @@ if ( ! isset( $hcsai_panels[ $hcsai_panel ] ) ) {
                 <p>Cada generación deja una fila en el log con sus tokens y su costo. Un evento diario borra las entradas más antiguas para que la tabla no crezca sin límite.</p>
                 <div class="hup-field">
                     <label class="hup-label" for="hcsai-log-retention-days">Conservar durante</label>
-                    <div class="hup-control hup-inline">
-                        <input type="number" id="hcsai-log-retention-days" name="hcsai_log_retention_days" class="hup-input hup-input--sm"
-                               value="<?php echo esc_attr( $log_retention ); ?>" min="0" step="1">
-                        <span>días</span>
+                    <div class="hup-control">
+                        <div class="hup-inline">
+                            <input type="number" id="hcsai-log-retention-days" name="hcsai_log_retention_days" class="hup-input hup-input--sm"
+                                   value="<?php echo esc_attr( $log_retention ); ?>" min="0" step="1">
+                            <span class="hup-unit">días</span>
+                        </div>
+                        <p class="hup-hint">0 = conservar el historial completo. Al purgar, las estadísticas acumuladas del dashboard (generaciones, tokens y costo totales) se conservan: solo se descarta el detalle fila a fila.</p>
                     </div>
-                    <p class="hup-hint">0 = conservar el historial completo. Al purgar, las estadísticas acumuladas del dashboard (generaciones, tokens y costo totales) se conservan: solo se descarta el detalle fila a fila.</p>
                 </div>
             </div>
                     <?php hcsai_settings_card_foot( 'log', 'Guardar duración' ); ?>
@@ -326,7 +328,7 @@ if ( ! isset( $hcsai_panels[ $hcsai_panel ] ) ) {
                     </div>
                 </div>
 
-                <div class="hup-field">
+                <div class="hup-field hup-field--stacked">
                     <label class="hup-label" for="hcsai_site_context">A qué se dedica</label>
                     <div class="hup-control">
                         <textarea name="hcsai_site_context" id="hcsai_site_context" class="hup-input" rows="3"
