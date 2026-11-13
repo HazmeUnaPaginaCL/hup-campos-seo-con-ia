@@ -1,4 +1,6 @@
 <?php defined( 'ABSPATH' ) || exit; ?>
-        </main>
+                </div>
+            </main>
+        </div>
     </div>
 </div>

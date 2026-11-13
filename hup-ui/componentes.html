@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>HUP Admin UI — Catálogo de componentes</title>
+<link rel="stylesheet" href="https://s.w.org/wp-includes/css/dashicons.min.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="hup-admin.css">
+<style>
+  /* Estilos SOLO de este catálogo (no copiar a plugins) */
+  body { margin: 0; background: #e9ebef; font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #1a1f2b; }
+  .hc-wrap { max-width: 1200px; margin: 0 auto; padding: 48px 32px 96px; }
+  .hc-wrap > h1 { margin: 0; font-size: 30px; }
+  .hc-wrap > p { color: #5b6475; margin: 6px 0 32px; }
+  .hc-toc { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 40px; }
+  .hc-toc a { padding: 4px 12px; border-radius: 14px; background: #fff; color: #2f5bd3; font-size: 13px; text-decoration: none; }
+  .hc-cat { margin: 48px 0 16px; font-size: 12px; font-weight: 700; letter-spacing: .08em; color: #8a92a3; text-transform: uppercase; }
+  .hc-item { background: #fff; border-radius: 16px; margin-bottom: 20px; overflow: hidden; border: 1px solid #e3e6ec; }
+  .hc-item > header { display: flex; justify-content: space-between; gap: 12px; padding: 16px 24px; border-bottom: 1px solid #eceef3; }
+  .hc-item > header h3 { margin: 0; font-size: 15px; }
+  .hc-item > header code { font-size: 12px; color: #8a92a3; }
+  .hc-item > .hc-note { padding: 12px 24px 0; margin: 0; font-size: 13px; color: #5b6475; }
+  .hc-demo { margin: 20px 24px; border: 0; border-radius: 0; background: transparent; overflow: visible; }
+  .hc-demo.hup-app { margin: 20px 24px; }
+  .hc-pad { padding: 24px; background: var(--hup-bg); border-radius: 12px; }
+  .hc-code { margin: 0; padding: 16px 24px; background: #161b26; color: #cdd6f4; font: 12px/1.55 ui-monospace, Menlo, Consolas, monospace; overflow: auto; max-height: 360px; white-space: pre; }
+</style>
+</head>
+<body>
+<div class="hc-wrap">
+  <h1>HUP Admin UI · Componentes</h1>
+  <p>HTML exacto de cada componente. El bloque oscuro bajo cada ejemplo es el código a copiar (se genera del propio ejemplo). Versión 1.2.0.</p>
+  <nav class="hc-toc" id="toc"></nav>
+
+  <!-- ============ ESTRUCTURA ============ -->
+  <div class="hc-cat" id="estructura">Estructura</div>
+
+  <section class="hc-item">
+    <header><h3>Página completa</h3><code>.hup-app · .hup-header · .hup-layout · .hup-nav · .hup-main · .hup-page-head</code></header>
+    <p class="hc-note">Color propio del plugin vía <code>--hup-plugin</code>, solo ícono. Menú oscuro: agregar <code>hup-app--nav-dark</code>.</p>
+    <div class="hc-demo" data-raw>
+<div class="hup-app" style="--hup-plugin:#e07a2f;margin:0">
+  <header class="hup-header">
+    <div class="hup-header__icon"><span class="dashicons dashicons-admin-plugins"></span></div>
+    <div class="hup-header__text">
+      <h2 class="hup-header__title">HUP - Mi Plugin <span class="hup-badge hup-badge--version">v1.0.0</span></h2>
+      <p class="hup-header__desc">Descripción del plugin en una sola línea.</p>
+    </div>
+    <div class="hup-header__support"><span class="dashicons dashicons-email-alt"></span>¿Dudas o soporte? <a href="mailto:contacto@hazmeunapagina.cl">contacto@hazmeunapagina.cl</a></div>
+  </header>
+  <div class="hup-layout" style="min-height:280px">
+    <nav class="hup-nav">
+      <ul class="hup-nav__list">
+        <li><a class="hup-nav__item is-active" href="#"><span class="dashicons dashicons-admin-generic"></span>General</a></li>
+        <li><a class="hup-nav__item" href="#"><span class="dashicons dashicons-art"></span>Diseño</a></li>
+        <li><a class="hup-nav__item" href="#"><span class="dashicons dashicons-database"></span>Caché</a></li>
+      </ul>
+      <div class="hup-nav__footer">Hecho por <a href="https://hazmeunapagina.cl">HUP</a></div>
+    </nav>
+    <main class="hup-main">
+      <div class="hup-page-head"><h2>General</h2><p>Una frase que explica para qué sirve esta sección.</p></div>
+      <!-- tarjetas -->
+    </main>
+  </div>
+</div>
+    </div>
+  </section>
+
+  <section class="hc-item">
+    <header><h3>Tarjeta con formulario</h3><code>.hup-card · __head · __title · __desc · __body · __foot · .hup-field · .hup-label · .hup-control</code></header>
+    <div class="hc-demo hup-app"><div class="hc-pad">
+<form class="hup-card">
+  <div class="hup-card__head">
+    <div>
+      <h3 class="hup-card__title">Datos de conexión</h3>
+      <p class="hup-card__desc">Credenciales de la API externa.</p>
+    </div>
+    <span class="hup-badge hup-badge--success hup-badge--dot">Configurado</span>
+  </div>
+  <div class="hup-card__body">
+    <div class="hup-field">
+      <label class="hup-label" for="ej1">Usuario
+        <span class="hup-tip" tabindex="0" data-tip="Solo cuentas públicas."><span class="dashicons dashicons-info-outline"></span></span>
+      </label>
+      <div class="hup-control"><input class="hup-input" id="ej1"></div>
+    </div>
+  </div>
+  <div class="hup-card__foot">
+    <button type="submit" class="hup-btn"><span class="dashicons dashicons-yes"></span>Guardar cambios</button>
+    <span class="hup-save-status"><span class="dashicons dashicons-yes-alt"></span>Cambios guardados</span>
+  </div>
+</form>
+    </div></div>
+  </section>
+
+  <section class="hc-item">
+    <header><h3>Layouts</h3><code>.hup-stack · .hup-grid--aside · --2 · --3</code></header>
+    <p class="hc-note">--aside: formulario + columna 320px (estado, resumen). Se apilan bajo 1100px.</p>
+    <div class="hc-demo hup-app"><div class="hc-pad">
+<div class="hup-grid hup-grid--aside">
+  <div class="hup-card"><div class="hup-card__body">Contenido principal</div></div>
+  <div class="hup-card"><div class="hup-card__body">Aside</div></div>
+</div>
+    </div></div>
+  </section>
+
+  <section class="hc-item">
+    <header><h3>Pestañas internas</h3><code>.hup-tabs</code></header>
+    <p class="hc-note">Para subdividir una sección. Navega por URL (&amp;sub=…).</p>
+    <div class="hc-demo hup-app"><div class="hc-pad">
+<nav class="hup-tabs">
+  <a href="#" class="is-active">Facturación</a>
+  <a href="#">Envío</a>
+  <a href="#">Adicionales</a>
+</nav>
+    </div></div>
+  </section>
+
+  <section class="hc-item">
+    <header><h3>Estado vacío</h3><code>.hup-empty</code></header>
+    <div class="hc-demo hup-app"><div class="hc-pad">
+<div class="hup-card">
+  <div class="hup-empty">
+    <div class="hup-empty__icon"><span class="dashicons dashicons-car"></span></div>
+    <div class="hup-empty__title">Aún no creas zonas de despacho</div>
+    <p>Agrupa comunas en zonas y asigna un costo.</p>
+    <a href="#" class="hup-btn"><span class="dashicons dashicons-plus-alt2"></span>Crear primera zona</a>
+  </div>
+</div>
+    </div></div>
+  </section>
+
+  <section class="hc-item">
+    <header><h3>Paginación</h3><code>.hup-pager</code></header>
+    <p class="hc-note">Genera los links con paginate_links( [ 'type' => 'array' ] ).</p>
+    <div class="hc-demo hup-app"><div class="hc-pad">
+<div class="hup-pager">
+  <span class="hup-hint">Mostrando 1–20 de 346</span>
+  <div class="hup-pager__links">
+    <a href="#">‹</a><span class="is-current">1</span><a href="#">2</a><a href="#">3</a><a href="#">›</a>
+  </div>
+</div>
+    </div></div>
+  </section>
+
+  <!-- ============ BOTONES ============ -->
+  <div class="hc-cat" id="botones">Botones</div>
+
+  <section class="hc-item">
+    <header><h3>Variantes</h3><code>.hup-btn · --secondary · --ghost · --danger · --danger-outline · --add</code></header>
+    <p class="hc-note">Una primaria por tarjeta. Peligro siempre con data-hup-confirm.</p>
+    <div class="hc-demo hup-app"><div class="hc-pad hup-inline">
+<button class="hup-btn"><span class="dashicons dashicons-yes"></span>Guardar cambios</button>
+<button class="hup-btn hup-btn--secondary"><span class="dashicons dashicons-controls-repeat"></span>Probar conexión</button>
+<button class="hup-btn hup-btn--ghost">Cancelar</button>
+<button class="hup-btn hup-btn--danger" data-hup-confirm="¿Limpiar la caché?"><span class="dashicons dashicons-trash"></span>Limpiar caché</button>
+<button class="hup-btn hup-btn--danger-outline">Desconectar</button>
+<button class="hup-btn hup-btn--add"><span class="dashicons dashicons-plus-alt2"></span>Agregar empresa</button>
+    </div></div>
+  </section>
+
+  <section class="hc-item">
+    <header><h3>Tamaños, ícono, carga y grupo</h3><code>--sm · --icon · .hup-spinner · [disabled] · .hup-btn-group</code></header>
+    <div class="hc-demo hup-app"><div class="hc-pad hup-inline">
+<button class="hup-btn hup-btn--secondary hup-btn--sm">Chico</button>
+<button class="hup-btn hup-btn--icon" title="Editar"><span class="dashicons dashicons-edit"></span></button>
+<button class="hup-btn hup-btn--icon hup-btn--danger-outline" title="Eliminar"><span class="dashicons dashicons-no-alt"></span></button>
+<button class="hup-btn" disabled><span class="hup-spinner"></span>Sincronizando…</button>
+<div class="hup-btn-group">
+  <button type="button">Seleccionar todas</button>
+  <button type="button">Ninguna</button>
+  <button type="button">Invertir</button>
+</div>
+    </div></div>
+  </section>
+
+  <!-- ============ CAMPOS ============ -->
+  <div class="hc-cat" id="campos">Campos</div>
+
+  <section class="hc-item">
+    <header><h3>Texto, prefijo, unidad, selector, textarea, buscar</h3><code>.hup-input · --sm · --mono · .hup-input-group · .hup-unit · .hup-select · .hup-search</code></header>
+    <div class="hc-demo hup-app"><div class="hc-pad"><div class="hup-card"><div class="hup-card__body">
+<div class="hup-field">
+  <label class="hup-label" for="c1">Con prefijo</label>
+  <div class="hup-control">
+    <div class="hup-input-group"><span class="hup-input-group__addon">@</span><input class="hup-input" id="c1" value="selladas.cl"></div>
+  </div>
+</div>
+<div class="hup-field">
+  <label class="hup-label" for="c2">Número con unidad</label>
+  <div class="hup-control"><div class="hup-inline"><input class="hup-input hup-input--sm" type="number" id="c2" value="6"><span class="hup-unit">horas</span></div></div>
+</div>
+<div class="hup-field">
+  <label class="hup-label" for="c3">Selector</label>
+  <div class="hup-control"><select class="hup-select" id="c3"><option>Gemini 3.8 Flash — Recomendado</option></select></div>
+</div>
+<div class="hup-field">
+  <label class="hup-label" for="c4">Texto largo</label>
+  <div class="hup-control"><textarea class="hup-input" id="c4">Aún no hay publicaciones.</textarea></div>
+</div>
+<div class="hup-field">
+  <label class="hup-label" for="c5">Buscar</label>
+  <div class="hup-control"><div class="hup-search"><span class="dashicons dashicons-search"></span><input class="hup-input" id="c5" placeholder="Buscar comuna…"></div></div>
+</div>
+    </div></div></div></div>
+  </section>
+
+  <section class="hc-item">
+    <header><h3>Claves, campo + acción, error, deshabilitado</h3><code>.hup-input--mono · [data-hup-reveal] · .hup-input--error · .hup-error</code></header>
+    <div class="hc-demo hup-app"><div class="hc-pad"><div class="hup-card"><div class="hup-card__body">
+<div class="hup-field">
+  <label class="hup-label" for="k1">API key</label>
+  <div class="hup-control">
+    <div class="hup-inline">
+      <input class="hup-input hup-input--mono" type="password" id="k1" placeholder="Guardada: déjala vacía para conservarla" style="max-width:360px">
+      <button type="button" class="hup-btn hup-btn--icon" data-hup-reveal="#k1" title="Mostrar"><span class="dashicons dashicons-visibility"></span></button>
+      <span class="hup-save-status"><span class="dashicons dashicons-yes-alt"></span>Verificada</span>
+    </div>
+    <p class="hup-hint">Se guarda cifrada y no vuelve a mostrarse.</p>
+  </div>
+</div>
+<div class="hup-field">
+  <label class="hup-label" for="k2">Campo + acción</label>
+  <div class="hup-control"><div class="hup-inline"><input class="hup-input" id="k2" placeholder="Nombre y ciudad" style="max-width:320px"><button type="button" class="hup-btn hup-btn--secondary"><span class="dashicons dashicons-search"></span>Buscar</button></div></div>
+</div>
+<div class="hup-field">
+  <label class="hup-label" for="k3">Con error</label>
+  <div class="hup-control"><input class="hup-input hup-input--error" id="k3" value="12.345.678-0"><span class="hup-error"><span class="dashicons dashicons-warning"></span>El RUT no es válido.</span></div>
+</div>
+<div class="hup-field">
+  <label class="hup-label" for="k4">Deshabilitado</label>
+  <div class="hup-control"><input class="hup-input" id="k4" value="Definido en wp-config.php" disabled></div>
+</div>
+    </div></div></div></div>
+  </section>
+
+  <section class="hc-item">
+    <header><h3>Medios y rango</h3><code>.hup-media · .hup-range</code></header>
+    <p class="hc-note">El botón abre wp.media (requiere wp_enqueue_media()). Color: usa wp-color-picker de WP.</p>
+    <div class="hc-demo hup-app"><div class="hc-pad"><div class="hup-card"><div class="hup-card__body">
+<div class="hup-field">
+  <span class="hup-label">Logo</span>
+  <div class="hup-control">
+    <div class="hup-media">
+      <div class="hup-media__preview"></div>
+      <div class="hup-inline"><button type="button" class="hup-btn hup-btn--secondary hup-btn--sm"><span class="dashicons dashicons-format-image"></span>Elegir imagen</button><button type="button" class="hup-btn hup-btn--ghost hup-btn--sm">Quitar</button></div>
+      <input type="hidden" name="logo_id" value="">
+    </div>
+  </div>
+</div>
+<div class="hup-field">
+  <label class="hup-label" for="r1">Largo del texto</label>
+  <div class="hup-control"><div class="hup-inline"><input class="hup-range" type="range" id="r1" min="0" max="120" value="40" style="max-width:300px"><span class="hup-unit">40 palabras</span></div></div>
+</div>
+    </div></div></div></div>
+  </section>
+
+  <section class="hc-item">
+    <header><h3>Deslizador con número</h3><code>.hup-slider · .hup-range · .hup-input--sm · .hup-unit</code></header>
+    <p class="hc-note">Para valores con vista previa en vivo. El campo numérico es el que se envía y permite escribir el valor exacto; el deslizador es un atajo (sincronízalos con JS). Desde 1.1.0.</p>
+    <div class="hc-demo hup-app"><div class="hc-pad"><div class="hup-card"><div class="hup-card__body">
+<div class="hup-field hup-field--stacked">
+  <label class="hup-label" for="s1">Espaciado</label>
+  <div class="hup-control">
+    <div class="hup-slider">
+      <input class="hup-range" type="range" min="0" max="60" value="8" tabindex="-1" aria-hidden="true">
+      <input class="hup-input hup-input--sm" type="number" id="s1" name="gap" min="0" max="60" value="8">
+      <span class="hup-unit">px</span>
+    </div>
+  </div>
+</div>
+    </div></div></div></div>
+  </section>
+
+  <!-- ============ SELECCION ============ -->
+  <div class="hc-cat" id="seleccion">Selección</div>
+
+  <section class="hc-item">
+    <header><h3>Toggle, checkbox y segmentado</h3><code>.hup-toggle · .hup-check · .hup-seg</code></header>
+    <p class="hc-note">Sí/no → toggle. 2–5 opciones cortas → segmentado. 6+ → select.</p>
+    <div class="hc-demo hup-app"><div class="hc-pad hup-stack" style="gap:14px">
+<label class="hup-toggle"><input type="checkbox" checked><span class="hup-toggle__track"></span>Guardar copia de las imágenes</label>
+<label class="hup-check"><input type="checkbox" checked>Mostrar fecha</label>
+<div class="hup-seg" role="radiogroup">
+  <label><input type="radio" name="lay" value="grid" checked><span><span class="dashicons dashicons-grid-view"></span>Grilla</span></label>
+  <label><input type="radio" name="lay" value="list"><span><span class="dashicons dashicons-list-view"></span>Lista</span></label>
+  <label><input type="radio" name="lay" value="carousel"><span><span class="dashicons dashicons-slides"></span>Carrusel</span></label>
+</div>
+    </div></div>
+  </section>
+
+  <section class="hc-item">
+    <header><h3>Tarjetas de opción</h3><code>.hup-choices · .hup-choice</code></header>
+    <p class="hc-note">Cuando cada opción necesita una descripción (proveedor de IA, método de conexión).</p>
+    <div class="hc-demo hup-app"><div class="hc-pad">
+<div class="hup-choices">
+  <label class="hup-choice"><input type="radio" name="prov" value="openai"><span class="hup-choice__dot"></span><span><span class="hup-choice__title">OpenAI (ChatGPT)</span><span class="hup-choice__desc">GPT-5 mini y superiores.</span></span></label>
+  <label class="hup-choice"><input type="radio" name="prov" value="gemini" checked><span class="hup-choice__dot"></span><span><span class="hup-choice__title">Google (Gemini)</span><span class="hup-choice__desc">Recomendado: más barato.</span></span></label>
+</div>
+    </div></div>
+  </section>
+
+  <section class="hc-item">
+    <header><h3>Lista de opciones con toggle</h3><code>.hup-rows · .hup-row</code></header>
+    <div class="hc-demo hup-app"><div class="hc-pad">
+<div class="hup-rows" style="background:#fff">
+  <div class="hup-row">
+    <div class="hup-row__text"><div class="hup-row__title">Zonas de despacho</div><div class="hup-row__desc">Agrupa comunas en zonas y asigna un costo de envío.</div></div>
+    <label class="hup-toggle"><input type="checkbox" checked><span class="hup-toggle__track"></span></label>
+  </div>
+  <div class="hup-row">
+    <div class="hup-row__text"><div class="hup-row__title">Números de seguimiento</div><div class="hup-row__desc">Agrega el tracking al email de pedido completado.</div></div>
+    <label class="hup-toggle"><input type="checkbox"><span class="hup-toggle__track"></span></label>
+  </div>
+</div>
+    </div></div>
+  </section>
+
+  <section class="hc-item">
+    <header><h3>Chips y grupo de checkboxes</h3><code>.hup-chips · .hup-chip · .hup-group-label · .hup-checkgroup</code></header>
+    <div class="hc-demo hup-app"><div class="hc-pad hup-grid hup-grid--2">
+<div class="hup-stack" style="gap:10px">
+  <div class="hup-group-label">Cliente</div>
+  <div class="hup-chips">
+    <label class="hup-chip"><input type="checkbox" name="f[]" value="email" checked><span>Email del cliente</span></label>
+    <label class="hup-chip"><input type="checkbox" name="f[]" value="tel"><span>Teléfono</span></label>
+    <label class="hup-chip"><input type="checkbox" name="f[]" value="city" checked><span>Ciudad / Comuna</span></label>
+  </div>
+</div>
+<div class="hup-checkgroup" style="background:#fff">
+  <div class="hup-checkgroup__head">
+    <label class="hup-check"><input type="checkbox" checked>Región de Arica y Parinacota</label>
+    <span class="hup-count">3/4</span>
+  </div>
+  <div class="hup-checkgroup__body">
+    <label class="hup-check"><input type="checkbox" checked>Arica</label>
+    <label class="hup-check"><input type="checkbox" checked>Camarones</label>
+    <label class="hup-check"><input type="checkbox">General Lagos</label>
+    <label class="hup-check"><input type="checkbox" checked>Putre</label>
+  </div>
+</div>
+    </div></div>
+  </section>
+
+  <!-- ============ AVISOS ============ -->
+  <div class="hc-cat" id="avisos">Avisos y estados</div>
+
+  <section class="hc-item">
+    <header><h3>Avisos</h3><code>.hup-notice · --success · --warning · --error</code></header>
+    <div class="hc-demo hup-app"><div class="hc-pad hup-stack" style="gap:10px">
+<div class="hup-notice"><span class="dashicons dashicons-info"></span><p><strong>Se configura una vez por sitio.</strong> Necesitas una API key.</p></div>
+<div class="hup-notice hup-notice--success"><span class="dashicons dashicons-yes-alt"></span><p>Conexión verificada.</p></div>
+<div class="hup-notice hup-notice--warning"><span class="dashicons dashicons-warning"></span><p><strong>Importante:</strong> otro plugin de emails podría ocultar este bloque.</p></div>
+<div class="hup-notice hup-notice--error"><span class="dashicons dashicons-dismiss"></span><p style="flex:1">El token venció.</p><button class="hup-btn hup-btn--danger-outline hup-btn--sm">Reintentar</button></div>
+    </div></div>
+  </section>
+
+  <section class="hc-item">
+    <header><h3>Badges y etiquetas</h3><code>.hup-badge · --version · --success · --warning · --danger · --dot · .hup-tag</code></header>
+    <div class="hc-demo hup-app"><div class="hc-pad hup-inline">
+<span class="hup-badge hup-badge--success hup-badge--dot">Conectado</span>
+<span class="hup-badge hup-badge--warning hup-badge--dot">Pendiente</span>
+<span class="hup-badge hup-badge--danger hup-badge--dot">Error</span>
+<span class="hup-badge hup-badge--dot">Inactivo</span>
+<span class="hup-badge hup-badge--version">v1.0.0</span>
+<span class="hup-badge hup-badge--danger">obligatorio</span>
+<span class="hup-tag">billing_rut</span>
+    </div></div>
+  </section>
+
+  <section class="hc-item">
+    <header><h3>Tooltip, toast y modal</h3><code>.hup-tip · HUP.toast() · .hup-modal [data-hup-modal] [data-hup-close] · .hup-modal__box--wide · .hup-modal__scroll</code></header>
+    <p class="hc-note">Para formularios extensos, agrega <code>.hup-modal__box--wide</code> a la caja y <code>.hup-modal__scroll</code> al cuerpo desplazable.</p>
+    <div class="hc-demo hup-app"><div class="hc-pad hup-inline">
+<span class="hup-label" style="padding:0">Columnas <span class="hup-tip" tabindex="0" data-tip="En tablet baja a 2 y en móvil a 1."><span class="dashicons dashicons-info-outline"></span></span></span>
+<button type="button" class="hup-btn hup-btn--secondary" onclick="HUP.toast('Cambios guardados')">Mostrar toast</button>
+<button type="button" class="hup-btn hup-btn--danger-outline" data-hup-modal="#modal-cache">Abrir modal</button>
+<div class="hup-modal" id="modal-cache" hidden>
+  <div class="hup-modal__box">
+    <div class="hup-modal__body">
+      <div class="hup-avatar" style="background:var(--hup-danger-soft);color:var(--hup-danger)"><span class="dashicons dashicons-trash"></span></div>
+      <div><h3 class="hup-card__title">¿Limpiar la caché?</h3><p class="hup-hint">La próxima carga pedirá datos nuevos a la API.</p></div>
+    </div>
+    <div class="hup-modal__foot">
+      <button type="button" class="hup-btn hup-btn--ghost" data-hup-close>Cancelar</button>
+      <button type="submit" class="hup-btn hup-btn--danger">Sí, limpiar</button>
+    </div>
+  </div>
+</div>
+    </div></div>
+  </section>
+
+  <section class="hc-item">
+    <header><h3>Progreso, spinner y skeleton</h3><code>.hup-progress · .hup-spinner · .hup-skeleton</code></header>
+    <div class="hc-demo hup-app"><div class="hc-pad hup-grid hup-grid--3">
+<div class="hup-stack" style="gap:8px"><div class="hup-inline" style="justify-content:space-between"><strong>Sincronizando</strong><span class="hup-unit">124 / 200</span></div><div class="hup-progress"><span style="width:62%"></span></div></div>
+<div class="hup-inline"><span class="hup-spinner"></span><span class="hup-unit">Buscando negocios…</span></div>
+<div class="hup-stack" style="gap:8px"><span class="hup-skeleton" style="width:70%"></span><span class="hup-skeleton"></span><span class="hup-skeleton" style="width:45%"></span></div>
+    </div></div>
+  </section>
+
+  <!-- ============ DATOS ============ -->
+  <div class="hc-cat" id="datos">Datos</div>
+
+  <section class="hc-item">
+    <header><h3>Métricas y estado del sistema</h3><code>.hup-stat · __label · __value · __sub · .hup-status-row</code></header>
+    <div class="hc-demo hup-app"><div class="hc-pad hup-stack">
+<div class="hup-grid hup-grid--3">
+  <div class="hup-stat"><div class="hup-stat__label">Productos con SEO</div><div class="hup-stat__value">1 / 5</div><div class="hup-stat__sub">20% del catálogo</div></div>
+  <div class="hup-stat"><div class="hup-stat__label">Gasto mensual</div><div class="hup-stat__value">US$0,0008</div><div class="hup-stat__sub">≈ $1 CLP</div></div>
+  <div class="hup-stat"><div class="hup-stat__label">Generaciones</div><div class="hup-stat__value">2</div><div class="hup-stat__sub">Desde el 27/10</div></div>
+</div>
+<div class="hup-status-row">
+  <div><span>Proveedor IA</span><strong>Google (Gemini)</strong></div>
+  <div><span>Conexión API</span><strong style="color:var(--hup-success)">● Verificada</strong></div>
+  <div><span>Modelo</span><strong>gemini-3.8-flash</strong></div>
+</div>
+    </div></div>
+  </section>
+
+  <section class="hc-item">
+    <header><h3>Tabla y clave/valor</h3><code>.hup-table · .is-num · .hup-kv</code></header>
+    <p class="hc-note">La tabla va dentro de una .hup-card sin padding (overflow:hidden en la card).</p>
+    <div class="hc-demo hup-app"><div class="hc-pad hup-grid hup-grid--aside">
+<div class="hup-card" style="overflow:hidden">
+  <table class="hup-table">
+    <thead><tr><th>Elemento</th><th>Acción</th><th class="is-num">Tokens</th><th>Estado</th></tr></thead>
+    <tbody>
+      <tr><td>Hello world!</td><td><span class="hup-tag">seo_generate</span></td><td class="is-num">1.051</td><td><span class="hup-badge hup-badge--success">OK</span></td></tr>
+      <tr><td>Polera algodón</td><td><span class="hup-tag">seo_generate</span></td><td class="is-num">0</td><td><span class="hup-badge hup-badge--danger">Error</span></td></tr>
+    </tbody>
+  </table>
+</div>
+<div class="hup-card"><div class="hup-card__body">
+  <dl class="hup-kv">
+    <dt>Cuenta</dt><dd>@selladas.cl</dd>
+    <dt>Última sinc.</dt><dd>30/10/2026 00:42</dd>
+    <dt>En caché</dt><dd>8 publicaciones</dd>
+  </dl>
+</div></div>
+    </div></div>
+  </section>
+
+  <!-- ============ LISTAS ============ -->
+  <div class="hc-cat" id="listas">Listas editables</div>
+
+  <section class="hc-item">
+    <header><h3>Lista ordenable</h3><code>.hup-sortable · .hup-handle · li.is-locked</code></header>
+    <p class="hc-note">Requiere jquery-ui-sortable (incluido en WP). Guarda el orden con inputs hidden name="order[]".</p>
+    <div class="hc-demo hup-app"><div class="hc-pad">
+<ul class="hup-sortable">
+  <li class="is-locked">
+    <span class="dashicons dashicons-lock" style="color:var(--hup-warning)"></span>
+    <div class="hup-row__text"><div class="hup-row__title">País / Región</div><div class="hup-inline" style="gap:6px;margin-top:4px"><span class="hup-badge hup-badge--version">País</span><span class="hup-tag">billing_country</span><span class="hup-badge hup-badge--danger">obligatorio</span></div></div>
+    <label class="hup-toggle"><input type="checkbox" checked disabled><span class="hup-toggle__track"></span></label>
+  </li>
+  <li>
+    <span class="dashicons dashicons-menu hup-handle"></span>
+    <div class="hup-row__text"><div class="hup-row__title">RUT / DNI <span class="hup-badge" style="height:18px;font-size:10px;border:1px solid var(--hup-primary-line);background:#fff;color:var(--hup-primary)">HUP</span></div><div class="hup-inline" style="gap:6px;margin-top:4px"><span class="hup-badge hup-badge--version">Texto</span><span class="hup-tag">billing_rut</span></div></div>
+    <label class="hup-toggle"><input type="checkbox" name="fields[billing_rut]" checked><span class="hup-toggle__track"></span></label>
+    <button type="button" class="hup-btn hup-btn--icon" title="Editar"><span class="dashicons dashicons-edit"></span></button>
+    <input type="hidden" name="order[]" value="billing_rut">
+  </li>
+</ul>
+    </div></div>
+  </section>
+
+  <section class="hc-item">
+    <header><h3>Filas repetibles</h3><code>.hup-repeater [data-hup-repeater] · .hup-repeater__row · [data-hup-add] · [data-hup-remove]</code></header>
+    <p class="hc-note">La fila nueva sale del &lt;template&gt;. Usa índices __i__ y reemplázalos al guardar, o name="x[]".</p>
+    <div class="hc-demo hup-app"><div class="hc-pad">
+<div class="hup-repeater" data-hup-repeater>
+  <div class="hup-repeater__row hup-label" style="padding:0"><span>ID</span><span>Nombre</span><span>Plantilla de URL</span><span></span></div>
+  <div class="hup-repeater__row">
+    <input class="hup-input hup-input--mono" name="carriers[id][]" value="chilexpress">
+    <input class="hup-input" name="carriers[name][]" value="Chilexpress">
+    <input class="hup-input" name="carriers[url][]" value="https://www.chilexpress.cl/seguimiento/{tracking}">
+    <button type="button" class="hup-btn hup-btn--icon hup-btn--danger-outline" data-hup-remove title="Eliminar"><span class="dashicons dashicons-no-alt"></span></button>
+  </div>
+  <template>
+    <div class="hup-repeater__row">
+      <input class="hup-input hup-input--mono" name="carriers[id][]">
+      <input class="hup-input" name="carriers[name][]">
+      <input class="hup-input" name="carriers[url][]" placeholder="https://…/{tracking}">
+      <button type="button" class="hup-btn hup-btn--icon hup-btn--danger-outline" data-hup-remove title="Eliminar"><span class="dashicons dashicons-no-alt"></span></button>
+    </div>
+  </template>
+  <button type="button" class="hup-btn hup-btn--add" data-hup-add style="align-self:flex-start"><span class="dashicons dashicons-plus-alt2"></span>Agregar empresa</button>
+</div>
+    </div></div>
+  </section>
+
+  <!-- ============ TECNICO ============ -->
+  <div class="hc-cat" id="tecnico">Contenido técnico</div>
+
+  <section class="hc-item">
+    <header><h3>Shortcode y URL para copiar</h3><code>.hup-code · .hup-copyfield · [data-hup-copy]</code></header>
+    <div class="hc-demo hup-app"><div class="hc-pad hup-stack" style="gap:14px">
+<div class="hup-code">
+  <code id="sc-demo">[hupind_indicadores show="uf,utm,dolar"]</code>
+  <button type="button" class="hup-btn hup-btn--sm" data-hup-copy="#sc-demo"><span class="dashicons dashicons-admin-page"></span><span class="hup-btn__label">Copiar</span></button>
+</div>
+<div class="hup-copyfield">
+  <code id="cb-demo">https://tusitio.cl/wp-admin/admin.php?page=hup-sheets&amp;oauth_callback=1</code>
+  <button type="button" class="hup-btn hup-btn--secondary" data-hup-copy="#cb-demo"><span class="dashicons dashicons-admin-page"></span><span class="hup-btn__label">Copiar</span></button>
+</div>
+    </div></div>
+  </section>
+
+  <section class="hc-item">
+    <header><h3>Pasos guiados y desplegable</h3><code>ol.hup-steps · li.is-done · li.is-pending · details.hup-accordion</code></header>
+    <div class="hc-demo hup-app"><div class="hc-pad"><div class="hup-card"><div class="hup-card__body">
+<ol class="hup-steps">
+  <li class="is-done"><div class="hup-steps__title">Genera un token de Facebook</div><div class="hup-inline" style="gap:6px;margin-top:6px"><span class="hup-tag">instagram_basic</span><span class="hup-tag">pages_show_list</span></div></li>
+  <li><div class="hup-steps__title">Pega el token y verifícalo</div><div class="hup-inline" style="margin-top:8px"><input class="hup-input hup-input--mono" placeholder="EAA…" style="max-width:320px"><button class="hup-btn">Verificar</button></div></li>
+  <li class="is-pending"><div class="hup-steps__title">Elige la cuenta de Instagram</div></li>
+</ol>
+<details class="hup-accordion">
+  <summary>¿Cómo obtener una API key de Google Gemini?</summary>
+  <div>1. Entra a Google AI Studio. 2. Pulsa «Crear API key». 3. Pégala arriba.</div>
+</details>
+    </div></div></div></div>
+  </section>
+
+  <section class="hc-item">
+    <header><h3>Cuenta conectada y vista previa</h3><code>.hup-account · .hup-avatar · .hup-preview</code></header>
+    <div class="hc-demo hup-app"><div class="hc-pad hup-stack">
+<div class="hup-account" style="background:#fff">
+  <div class="hup-avatar">E</div>
+  <div class="hup-row__text"><div class="hup-row__title">Cuenta de Google</div><div class="hup-hint">eliasrabahsolis@gmail.com</div></div>
+  <button type="button" class="hup-btn hup-btn--danger-outline hup-btn--sm" data-hup-confirm="¿Desconectar la cuenta?">Desconectar</button>
+</div>
+<div class="hup-preview">salida real del shortcode (do_shortcode)</div>
+    </div></div>
+  </section>
+</div>
+
+<script src="hup-admin.js"></script>
+<script>
+  // Genera el bloque de código bajo cada ejemplo y el índice. Solo para este catálogo.
+  document.querySelectorAll('.hc-demo').forEach(function (d) {
+    var src = d.hasAttribute('data-raw') ? d : (d.querySelector('.hc-pad') || d);
+    var clone = src.cloneNode(true);
+    [clone].concat([].slice.call(clone.querySelectorAll('*'))).forEach(function (e) {
+      [].slice.call(e.attributes).forEach(function (a) { if (/^data-(om|cc|dm)/.test(a.name)) e.removeAttribute(a.name); });
+    });
+    var html = clone.innerHTML.replace(/^\n+|\s+$/g, '');
+    var pre = document.createElement('pre'); pre.className = 'hc-code';
+    pre.textContent = html; d.after(pre);
+  });
+  var toc = document.getElementById('toc');
+  document.querySelectorAll('.hc-cat').forEach(function (c) {
+    var a = document.createElement('a'); a.href = '#' + c.id; a.textContent = c.textContent; toc.appendChild(a);
+  });
+</script>
+</body>
+</html>

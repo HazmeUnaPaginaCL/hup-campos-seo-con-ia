@@ -18,8 +18,13 @@
 
 # Instrucciones y notas de desarrollo
 .claude
+.diseno-plugin
 CLAUDE.md
 TASKS.md
+hup-ui/CLAUDE.md
+hup-ui/README.md
+hup-ui/CHANGELOG.md
+hup-ui/componentes.html
 
 # Paquetes construidos a mano (el zip de una versión anterior no debe viajar
 # dentro del de la siguiente)

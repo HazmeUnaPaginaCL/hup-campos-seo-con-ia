@@ -1,90 +1,72 @@
 <?php
-/**
- * Vista de administración.
- *
- * Las vistas se cargan con `require` DENTRO de un método de Admin\Menu, así que
- * las variables de este archivo son locales a ese método, no globales: el sniff
- * de prefijos no puede verlo desde aquí y marcaría cada una como global sin
- * prefijo. Los $_GET son filtros, orden y paginación de un listado de solo
- * lectura —no cambian estado, así que no llevan nonce— y todos van sanitizados
- * al leerlos. meta_query es la forma soportada de filtrar por los campos que
- * escriben los plugins SEO, y el listado va paginado.
- *
- * phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
- * phpcs:disable WordPress.Security.NonceVerification.Recommended
- * phpcs:disable WordPress.DB.SlowDBQuery
- *
- * @package HUP\CamposSeoIA
- */
-
+/** Cabecera y navegación compartidas del panel HUP. */
 defined( 'ABSPATH' ) || exit;
 
-$current_page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
-$provider     = \HUP\CamposSeoIA\Settings::provider();
-$conn_status  = \HUP\CamposSeoIA\Settings::connection_status( $provider );
-$providers    = \HUP\CamposSeoIA\Settings::providers_display();
-$provider_name = $providers[ $provider ] ?? $provider;
+$hcsai_page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : 'hcsai';
+$hcsai_tab  = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'dashboard';
+$hcsai_aliases = [
+    'hcsai-productos'     => 'productos',
+    'hcsai-blog'          => 'blog',
+    'hcsai-configuracion' => 'configuracion',
+    'hcsai-paginas'       => 'paginas',
+];
+if ( isset( $hcsai_aliases[ $hcsai_page ] ) ) {
+    $hcsai_tab = $hcsai_aliases[ $hcsai_page ];
+}
 
-$nav_items = [
-    'hcsai'               => [ 'label' => 'Dashboard',      'icon' => '📊' ],
-    'hcsai-productos'     => [ 'label' => 'Productos',      'icon' => '🛒' ],
-    'hcsai-blog'          => [ 'label' => 'Blog',           'icon' => '📝' ],
-    'hcsai-configuracion' => [ 'label' => 'Configuración',  'icon' => '⚙️' ],
+$hcsai_sections = [
+    'dashboard'     => [ 'Dashboard', 'dashicons-dashboard', 'Revisa el estado del contenido y las generaciones recientes.' ],
+    'productos'     => [ 'Productos', 'dashicons-products', 'Escanea, completa y edita los campos de tus productos.' ],
+    'blog'          => [ 'Blog', 'dashicons-edit-page', 'Crea, mejora y completa el contenido de tus posts.' ],
+    'configuracion' => [ 'Configuración', 'dashicons-admin-settings', 'Configura la IA, el perfil del sitio y los prompts.' ],
 ];
 
-// Status badge
-$status_badge = '';
-if ( 'ok' === $conn_status ) {
-    $status_badge = '<span class="hup-seo-badge hup-seo-badge--connected"><span class="hup-seo-badge__dot"></span>Conectado · ' . esc_html( $provider_name ) . '</span>';
-} else {
-    $status_badge = '<span class="hup-seo-badge hup-seo-badge--disconnected"><span class="hup-seo-badge__dot"></span>Sin conexión</span>';
+// El addon actual registra Páginas como submenú. También puede añadir secciones
+// propias mediante el filtro sin depender de selectores JavaScript antiguos.
+global $submenu;
+foreach ( (array) ( $submenu['hcsai'] ?? [] ) as $hcsai_submenu_item ) {
+    if ( 'hcsai-paginas' === ( $hcsai_submenu_item[2] ?? '' ) ) {
+        $hcsai_sections['paginas'] = [ 'Páginas', 'dashicons-admin-page', 'Completa y edita los campos SEO de tus páginas.' ];
+        break;
+    }
 }
+$hcsai_sections = (array) apply_filters( 'hcsai_admin_sections', $hcsai_sections );
+if ( ! isset( $hcsai_sections[ $hcsai_tab ] ) ) {
+    $hcsai_tab = 'dashboard';
+}
+
+$hcsai_nav_url = static function ( string $section ): string {
+    if ( 'paginas' === $section ) {
+        return admin_url( 'admin.php?page=hcsai-paginas' );
+    }
+    return add_query_arg( [ 'page' => 'hcsai', 'tab' => $section ], admin_url( 'admin.php' ) );
+};
 ?>
-<div class="hup-seo-wrap">
-    <div class="hup-seo-header">
-        <div class="hup-seo-header__logo">
-            <span class="hup-seo-header__icon">
-                <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                    <rect width="28" height="28" rx="7" fill="#2271b1"/>
-                    <!-- Documento con líneas (SEO/Contenido) -->
-                    <path d="M7 8h14v12H7z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-                    <path d="M10 12h8M10 15h6" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-                    <!-- Brillo/Estrella (IA/Generación) -->
-                    <path d="M18 7l1 2 2 1-2 1-1 2-1-2-2-1 2-1z" fill="#86efac"/>
-                </svg>
-            </span>
-            <div>
-                <h1 class="hup-seo-header__title">
-                    HUP - Campos SEO con IA
-                    <span class="hup-seo-header__version">v<?php echo esc_html( HCSAI_VERSION ); ?></span>
-                </h1>
-                <p class="hup-seo-header__desc">
-                    Rellena con IA los campos de tus productos y posts con textos escritos para posicionar.
-                    Detecta RankMath, Yoast SEO y All In One SEO.
-                    ¿Tienes dudas? Escríbenos a <a href="mailto:contacto@hazmeunapagina.cl">contacto@hazmeunapagina.cl</a> —
-                    Desarrollado por <a href="https://www.hazmeunapagina.cl" target="_blank" rel="noopener noreferrer">HazmeUnaPagina.cl</a>
-                </p>
+<div class="wrap">
+    <h1 class="screen-reader-text">HUP - Campos SEO con IA</h1>
+    <?php settings_errors(); ?>
+    <div class="hup-app" style="--hup-plugin:#2271b1">
+        <header class="hup-header">
+            <div class="hup-header__icon"><span class="dashicons dashicons-welcome-write-blog" aria-hidden="true"></span></div>
+            <div class="hup-header__text">
+                <h2 class="hup-header__title">HUP - Campos SEO con IA <span class="hup-badge hup-badge--version">v<?php echo esc_html( HCSAI_VERSION ); ?></span></h2>
+                <p class="hup-header__desc">Completa con IA los campos SEO de tus productos y posts.</p>
             </div>
-        </div>
-        <div class="hup-seo-header__status">
-            <?php echo wp_kses_post( $status_badge ); ?>
-        </div>
-    </div>
+            <div class="hup-header__support"><span class="dashicons dashicons-email-alt" aria-hidden="true"></span>¿Dudas o soporte? <a href="mailto:contacto@hazmeunapagina.cl">contacto@hazmeunapagina.cl</a></div>
+        </header>
 
-    <div class="hup-seo-layout">
-        <nav class="hup-seo-sidebar">
-            <?php foreach ( $nav_items as $slug => $item ) : 
-                $is_active = ( $current_page === $slug );
-            ?>
-                <a href="<?php echo esc_url( admin_url( 'admin.php?page=' . $slug ) ); ?>"
-                   class="hup-seo-tab-btn <?php echo $is_active ? 'is-active' : ''; ?>">
-                    <span class="hup-seo-tab-btn__icon"><?php echo esc_html( $item['icon'] ); ?></span>
-                    <span><?php echo esc_html( $item['label'] ); ?></span>
-                </a>
-            <?php endforeach; ?>
-            <div class="hup-seo-sidebar-footer">
-                Hecho con ❤️ por HUP
-            </div>
-        </nav>
-
-        <main class="hup-seo-content">
+        <div class="hup-layout">
+            <nav class="hup-nav" aria-label="Secciones">
+                <ul class="hup-nav__list">
+                    <?php foreach ( $hcsai_sections as $hcsai_slug => $hcsai_section ) : ?>
+                    <li><a class="hup-nav__item<?php echo $hcsai_slug === $hcsai_tab ? ' is-active' : ''; ?>" href="<?php echo esc_url( $hcsai_nav_url( $hcsai_slug ) ); ?>"<?php echo $hcsai_slug === $hcsai_tab ? ' aria-current="page"' : ''; ?>><span class="dashicons <?php echo esc_attr( $hcsai_section[1] ); ?>" aria-hidden="true"></span><?php echo esc_html( $hcsai_section[0] ); ?></a></li>
+                    <?php endforeach; ?>
+                </ul>
+                <div class="hup-nav__footer">Hecho por <a href="https://hazmeunapagina.cl" target="_blank" rel="noopener noreferrer">HUP</a></div>
+            </nav>
+            <main class="hup-main">
+                <div class="hup-page-head">
+                    <h2><?php echo esc_html( $hcsai_sections[ $hcsai_tab ][0] ); ?></h2>
+                    <p><?php echo esc_html( $hcsai_sections[ $hcsai_tab ][2] ); ?></p>
+                </div>
+                <div class="hup-stack">

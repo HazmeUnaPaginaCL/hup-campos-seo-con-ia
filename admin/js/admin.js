@@ -16,11 +16,13 @@
   // msg puede venir del servidor y contener el texto de error que devolvió la
   // API de IA, así que se inserta con .text() y nunca concatenado en HTML.
   function toast(msg, type) {
-    var $t = $('<div class="hup-seo-toast"></div>')
-      .addClass('hup-seo-toast-' + (type || 'ok'))
-      .text(msg);
-    $('body').append($t);
-    setTimeout(function () { $t.fadeOut(300, function () { $t.remove(); }); }, 3500);
+    var icon = type === 'error' ? 'dashicons-warning' : 'dashicons-yes-alt';
+    var $t = $('<div class="hup-toast"></div>')
+      .toggleClass('hcsai-toast--error', type === 'error')
+      .append($('<span class="dashicons"></span>').addClass(icon))
+      .append(document.createTextNode(msg));
+    $('.hup-app').append($t);
+    setTimeout(function () { $t.remove(); }, 3500);
   }
 
   // El badge de score se repinta desde tres sitios (completar, guardar y
@@ -34,38 +36,42 @@
       .text(score + '%');
   }
 
+  function generatedCell($row) {
+    var $cell = $row.find('[data-hcsai-col="generated"]');
+    // Las vistas de extensiones anteriores todavía usan la penúltima columna.
+    return $cell.length ? $cell : $row.find('td').eq(-2);
+  }
 
-  // ── Tabs ────────────────────────────────────────────
-  $(document).on('click', '.hup-seo-tab', function () {
-    var tab = $(this).data('tab');
-    $('.hup-seo-tab').removeClass('active');
-    $(this).addClass('active');
-    $('.hup-seo-tab-content').removeClass('active');
-    $('#' + tab).addClass('active');
-  });
 
   // ── Provider selector ───────────────────────────────
   $(document).on('change', 'input[name="hcsai_provider"]', function () {
     var slug = $(this).val();
-    $('.hup-seo-provider-option').removeClass('active');
-    $(this).closest('.hup-seo-provider-option').addClass('active');
-    $('.hup-seo-provider-block').hide();
-    $('.hup-seo-provider-block[data-provider="' + slug + '"]').show();
+    $('.hup-seo-provider-block').prop('hidden', true);
+    $('.hup-seo-provider-block[data-provider="' + slug + '"]').prop('hidden', false);
   });
 
   // ── Test API — handler movido a sección mejorada abajo ──
 
   // ── Reset prompt ────────────────────────────────────
   $(document).on('click', '.hup-seo-reset-prompt', function () {
-    var type = $(this).data('type');
-    if (!confirm('¿Restaurar el prompt de ' + type + ' al valor por defecto?')) return;
+    var $btn = $(this);
+    var $choice = $('#hcsai-reset-prompt-type');
+    var type = $choice.val();
+    var label = $choice.find('option:selected').text();
+    if (!type || !confirm('¿Restaurar el prompt de ' + label + ' al valor por defecto? Se guardará de inmediato.')) return;
 
-    ajax('reset_prompt', { type: type }).done(function (r) {
-      if (r.success) {
-        $('#hup-seo-prompt-' + type).val(r.data.prompt);
-        toast('Prompt restaurado');
-      }
-    });
+    $btn.prop('disabled', true);
+    ajax('reset_prompt', { type: type })
+      .done(function (r) {
+        if (r.success) {
+          $('#hup-seo-prompt-' + type).val(r.data.prompt);
+          toast('Prompt restaurado y guardado');
+        } else {
+          toast((r.data && r.data.message) || 'No se pudo restaurar el prompt', 'error');
+        }
+      })
+      .fail(function () { toast('Error de red al restaurar el prompt', 'error'); })
+      .always(function () { $btn.prop('disabled', false); });
   });
 
   // ── Completar un contenido ──────────────────────────
@@ -74,7 +80,7 @@
     var id = $btn.data('id');
     var $row = $btn.closest('tr');
 
-    $btn.prop('disabled', true).text('Completando...');
+    $btn.prop('disabled', true).html('<span class="hup-spinner"></span>Completando...');
 
     // Si sobrescribe o no lo decide Configuración, no este botón.
     ajax('generate', { post_id: id })
@@ -90,11 +96,14 @@
           }
 
           // Actualizar estado
-          $row.find('td:eq(-2)').text(new Date().toLocaleString());
+          generatedCell($row).empty().append(
+            $('<span class="hup-badge hup-badge--success hup-badge--dot">IA</span>')
+              .attr('title', 'Generado el ' + new Date().toLocaleString('es-CL'))
+          );
           // Feedback de imagen
           var msg = 'Campos completados — Score: ' + d.score + '%';
           if (d.has_thumbnail === false) {
-            msg += ' ⚠️ Sin imagen destacada — alt text no aplicado';
+            msg += ' Sin imagen destacada: alt text no aplicado';
           }
           toast(msg);
           // Abrir modal automáticamente después de completar
@@ -126,7 +135,7 @@
   // ── Desglose del score ──────────────────────────────
   // Un 40% sin explicación parece un fallo del plugin. Con el desglose se ve
   // que son campos por completar, cuáles, y cuánto suma cada uno.
-  var ESTADO_ICONO = { ok: '✓', parcial: '~', vacio: '·' };
+  var ESTADO_ICONO = { ok: 'dashicons-yes-alt', parcial: 'dashicons-minus', vacio: 'dashicons-dismiss' };
 
   function renderBreakdown(b) {
     var $panel = $('#modal-score-detail');
@@ -135,14 +144,14 @@
     // Se limpian las anotaciones anteriores: al abrir otro contenido los campos
     // medidos pueden ser distintos.
     $('.hup-seo-field-score').remove();
-    $('.hup-seo-form-row[data-hcsai-field]').removeAttr('data-estado');
+    $('.hup-field[data-hcsai-field]').removeAttr('data-estado');
 
     if (!b || !b.fields || !b.fields.length) {
-      $panel.hide();
+      $panel.prop('hidden', true);
       return;
     }
 
-    $panel.show();
+    $panel.prop('hidden', false);
     $('#modal-score-detail-total').text(b.score);
     $('#modal-score-entorno').text(b.entorno || '');
 
@@ -151,7 +160,7 @@
     $.each(b.fields, function (_, f) {
       // Todo con .text(): el label y la nota son texto, nunca HTML.
       var $li = $('<li></li>').addClass('hup-seo-score-detail__item is-' + f.estado);
-      $li.append($('<span></span>').addClass('hup-seo-score-detail__icon').text(ESTADO_ICONO[f.estado] || '·'));
+      $li.append($('<span></span>').addClass('hup-seo-score-detail__icon dashicons ' + (ESTADO_ICONO[f.estado] || 'dashicons-minus')).attr('aria-hidden', 'true'));
       $li.append($('<span></span>').addClass('hup-seo-score-detail__label').text(f.label));
       $li.append($('<span></span>').addClass('hup-seo-score-detail__pts').text(f.earned + '/' + f.weight + ' pts'));
       if (f.nota) {
@@ -164,10 +173,10 @@
       $list.append($li);
 
       // Anotación junto al campo del formulario, para no obligar a mirar arriba.
-      var $row = $('.hup-seo-form-row[data-hcsai-field="' + f.field + '"]');
+      var $row = $('.hup-field[data-hcsai-field="' + f.field + '"]');
       if ($row.length) {
         $row.attr('data-estado', f.estado);
-        $row.find('.hup-seo-form-label').first().append(
+        $row.find('.hup-label').first().append(
           $('<span></span>')
             .addClass('hup-seo-field-score is-' + f.estado)
             .text(f.earned + '/' + f.weight + ' pts')
@@ -218,7 +227,9 @@
     // Hasta que lleguen los datos de este contenido, el formulario aún tiene
     // los del anterior: guardar ahora mezclaría los dos.
     $('#modal-save-fields').prop('disabled', true);
-    $('#hup-seo-seo-modal').show();
+    $('#modal-post-title').text('Cargando...');
+    $('#modal-cancel-fields').text('Cancelar');
+    $('#hup-seo-seo-modal').prop('hidden', false);
 
     ajax('get_fields', { post_id: id }).done(function (r) {
       if (r.success) {
@@ -246,18 +257,17 @@
         // entonces los campos propios —los que se imprimen en el <head>, y
         // los que puntúan en los posts— no se podían revisar ni completar.
         $('#modal-seo-plugin-label').text(hasPlugin && f.plugin_name ? f.plugin_name : 'SEO y redes sociales');
-        $('#modal-seo-native-help').toggle(!hasPlugin);
+        $('#modal-seo-native-help').prop('hidden', hasPlugin);
 
         // Barra de estado
-        $('#modal-seo-info').show();
         $('#modal-score-value').text(f.score || 0);
         if (hasPlugin) {
-          $('#modal-status-native').hide();
-          $('#modal-status-plugin').show();
+          $('#modal-status-native').prop('hidden', true);
+          $('#modal-status-plugin').prop('hidden', false);
           $('#modal-plugin-name').text(f.plugin_name);
         } else {
-          $('#modal-status-native').show();
-          $('#modal-status-plugin').hide();
+          $('#modal-status-native').prop('hidden', false);
+          $('#modal-status-plugin').prop('hidden', true);
         }
 
         // Feedback sin imagen
@@ -277,15 +287,19 @@
         snapshotModal();
         $('#modal-save-fields').prop('disabled', false);
       } else {
-        toast(r.data.message, 'error');
+        toast((r.data && r.data.message) || 'No se pudieron cargar los campos', 'error');
       }
-    });
+    }).fail(function () { toast('Error de red al cargar los campos', 'error'); });
   });
 
-  $(document).on('click', '.hup-seo-modal-close, .hup-seo-modal-overlay', function () {
-    $('#hup-seo-seo-modal').hide();
+  $(document).on('click', '.hup-seo-modal-close', function () {
+    $('#hup-seo-seo-modal').prop('hidden', true);
     // El botón vuelve a su etiqueta original: tras guardar pasa a "Cerrar".
     $('#modal-cancel-fields').text('Cancelar');
+  });
+
+  $(document).on('keydown', function (event) {
+    if (event.key === 'Escape') $('#hup-seo-seo-modal').prop('hidden', true);
   });
 
   $(document).on('click', '#modal-save-fields', function () {
@@ -308,7 +322,7 @@
       return;
     }
 
-    $btn.prop('disabled', true).text('Guardando...');
+    $btn.prop('disabled', true).html('<span class="hup-spinner"></span>Guardando...');
 
     ajax('save_fields', payload)
       .done(function (r) {
@@ -330,7 +344,7 @@
           toast(r.data.message, 'error');
         }
       })
-      .always(function () { $btn.prop('disabled', false).text('Guardar'); });
+      .always(function () { $btn.prop('disabled', false).text('Guardar campos'); });
   });
 
   function updateCharCounts() {
@@ -355,21 +369,18 @@
   function startScan($triggerBtn, postType) {
     // Obtener o crear el wrap de progreso del scan
     var wrapId = 'hcsai-scan-wrap-' + ($triggerBtn.attr('id') || 'btn');
-    var $card  = $triggerBtn.closest('.hup-seo-card');
+    var $card  = $triggerBtn.closest('.hup-card, .hup-seo-card');
     var $wrap  = $card.find('#' + wrapId);
     var $fill, $log, $curr, $tot, $pct;
 
     if (!$wrap.length) {
       $wrap = $(
-        '<div id="' + wrapId + '" style="margin:16px 0 0;padding:14px 18px;background:#f0f6ff;border:2px solid #2271b1;border-radius:8px;">' +
-        '<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">' +
-        '<span style="font-weight:700;font-size:13px;color:#1d2327;">Escaneando productos...</span>' +
-        '<span style="font-size:12px;color:#2271b1;font-weight:600;"><span class="sc-curr">0</span> / <span class="sc-tot">?</span> &nbsp;(<span class="sc-pct">0</span>%)</span>' +
-        '</div>' +
-        '<div style="background:#dbeafe;border-radius:6px;height:12px;overflow:hidden;margin-bottom:10px;">' +
-        '<div class="sc-fill" style="background:#2271b1;height:100%;width:0%;transition:width .25s ease;border-radius:6px;"></div>' +
-        '</div>' +
-        '<div class="sc-log" style="max-height:150px;overflow-y:auto;font-size:11.5px;font-family:monospace;line-height:1.7;color:#374151;background:#fff;border:1px solid #dbeafe;border-radius:4px;padding:6px 10px;"></div>' +
+        '<div id="' + wrapId + '" class="hcsai-scan-progress hup-notice">' +
+        '<div class="hcsai-scan-progress__body">' +
+        '<div class="hup-inline"><strong>Escaneando contenido</strong>' +
+        '<span><span class="sc-curr">0</span> / <span class="sc-tot">?</span> (<span class="sc-pct">0</span>%)</span></div>' +
+        '<div class="hup-progress"><span class="sc-fill"></span></div>' +
+        '<div class="sc-log"></div>' +
         '</div>'
       );
       // Insertar siempre fuera del form — directamente en el card
@@ -395,18 +406,17 @@
     $pct  = $wrap.find('.sc-pct');
 
     function scanLog(msg, type) {
-      var color = type === 'ok' ? '#166534' : type === 'err' ? '#991b1b' : '#374151';
       // .text(): msg puede incluir mensajes de error que vienen del servidor.
       $log.append(
         $('<div></div>')
-          .css({ color: color, padding: '1px 0' })
+          .addClass(type === 'ok' ? 'is-ok' : type === 'err' ? 'is-error' : '')
           .text('[' + new Date().toLocaleTimeString() + '] ' + msg)
       );
       $log.scrollTop($log[0].scrollHeight);
     }
 
     if (!$triggerBtn.data('orig-label')) { $triggerBtn.data('orig-label', $triggerBtn.html()); }
-    $triggerBtn.prop('disabled', true).html('⏳ Escaneando...');
+    $triggerBtn.prop('disabled', true).html('<span class="hup-spinner"></span>Escaneando...');
 
     var total  = 0;
     var done   = 0;
@@ -414,17 +424,17 @@
     var ai     = 0;
 
     function restoreBtn() {
-      $triggerBtn.prop('disabled', false).html($triggerBtn.data('orig-label') || '🔍 Escanear');
+      $triggerBtn.prop('disabled', false).html($triggerBtn.data('orig-label') || '<span class="dashicons dashicons-search" aria-hidden="true"></span>Escanear');
     }
 
     function finish() {
-      scanLog('✅ Listo: ' + ai + ' IA · ' + manual + ' manuales · ' + (total - ai - manual) + ' sin SEO.', 'ok');
+      scanLog('Listo: ' + ai + ' IA · ' + manual + ' manuales · ' + (total - ai - manual) + ' sin SEO.', 'ok');
       restoreBtn();
       // Refrescar contadores del dashboard si están en el DOM
       ajax('scan_stats', { post_type: postType }).done(function (rs) {
         if (rs.success && rs.data && rs.data.with_seo !== undefined) {
-          $('.hup-seo-stat-card').first().find('.hup-seo-stat-number').text(rs.data.with_seo + ' / ' + rs.data.total);
-          $('.hup-seo-stat-card').eq(1).find('.hup-seo-stat-number').text(rs.data.without_seo);
+          $('.hup-stat').first().find('.hup-stat__value').text(rs.data.with_seo + ' / ' + rs.data.total);
+          $('.hup-stat').eq(1).find('.hup-stat__value').text(rs.data.without_seo);
         }
       });
     }
@@ -454,7 +464,7 @@
           scanPage(r.data.ids, page, r.data.pages || 1);
         })
         .fail(function (xhr) {
-          scanLog('❌ Error HTTP ' + xhr.status + ' al pedir la página ' + page + '.', 'err');
+          scanLog('Error HTTP ' + xhr.status + ' al pedir la página ' + page + '.', 'err');
           restoreBtn();
         });
     }
@@ -487,9 +497,9 @@
               if ($row.length) {
                 updateScoreBadge($row, score);
                 if (status !== 'ai' && score > 0) {
-                  $row.find('td').eq(-2).html('<span class="hup-seo-badge hup-seo-badge-manual">✏️ Manual</span>');
+                  generatedCell($row).html('<span class="hup-badge hup-badge--dot">Manual</span>');
                 } else if (score === 0) {
-                  $row.find('td').eq(-2).html('<span class="hup-seo-badge hup-seo-badge-warn">Pendiente</span>');
+                  generatedCell($row).html('<span class="hup-badge hup-badge--warning">Pendiente</span>');
                 }
               }
             } else {
@@ -526,7 +536,7 @@
     var topic = $('#create-topic').val().trim();
     if (!topic) { toast('Ingresa un tema o keyword', 'error'); return; }
 
-    $btn.prop('disabled', true).text('Creando...');
+    $btn.prop('disabled', true).html('<span class="hup-spinner"></span>Creando...');
     var $result = $('.hup-seo-create-result');
 
     ajax('create_post', {
@@ -540,8 +550,9 @@
           var postTitle = r.data.post_title || 'Post';
           // El título lo genera la IA y edit_url va en un atributo: se arma con
           // jQuery en vez de concatenar.
-          var $notice = $('<div class="hup-seo-notice hup-seo-notice-ok"></div>')
-            .append(document.createTextNode('✅ Post creado como borrador: '))
+          var $notice = $('<div class="hup-notice hup-notice--success"></div>')
+            .append('<span class="dashicons dashicons-yes-alt" aria-hidden="true"></span>')
+            .append(document.createTextNode('Post creado como borrador: '))
             .append($('<strong></strong>').text(postTitle))
             .append('<br>')
             .append(
@@ -550,11 +561,11 @@
                 .text('Editar "' + postTitle + '"')
             )
             .append(document.createTextNode(' — Tokens: ' + r.data.tokens));
-          $result.show().empty().append($notice);
+          $result.prop('hidden', false).empty().append($notice);
           toast('Post creado exitosamente');
         } else {
-          $result.show().empty().append(
-            $('<div class="hup-seo-notice hup-seo-notice-error"></div>').text(r.data.message)
+          $result.prop('hidden', false).empty().append(
+            $('<div class="hup-notice hup-notice--error"></div>').text(r.data.message)
           );
           toast(r.data.message, 'error');
         }
@@ -581,7 +592,7 @@
     var postId = $('#improve-post-id').val();
     if (!postId) { toast('Selecciona un post', 'error'); return; }
 
-    $btn.prop('disabled', true).text('Mejorando...');
+    $btn.prop('disabled', true).html('<span class="hup-spinner"></span>Mejorando...');
     var $result = $('.hup-seo-improve-result');
 
     ajax('improve_post', {
@@ -594,7 +605,7 @@
       .done(function (r) {
         if (r.success) {
           var d = r.data.improved;
-          var $body = $('<div class="hup-seo-card-body"></div>');
+          var $body = $('<div class="hup-card__body"></div>');
 
           // La vista previa muestra TODO lo que se va a aplicar, contenido
           // incluido. Antes solo enseñaba cuatro campos y el artículo se
@@ -612,7 +623,7 @@
           if (d.post_content) {
             if (r.data.se_pierde && r.data.se_pierde.length) {
               $body.append(
-                $('<div class="hup-seo-notice hup-seo-notice-warning"></div>').text(
+                $('<div class="hup-notice hup-notice--warning"></div>').text(
                   'El post original tiene ' + r.data.se_pierde.join(', ') +
                   '. La versión mejorada se reescribe como texto y no los conserva.'
                 )
@@ -621,12 +632,12 @@
             // El HTML ya viene pasado por wp_kses_post en el servidor: es el
             // mismo filtro que WordPress aplica al contenido que muestra.
             $body.append(
-              $('<details class="hup-seo-improve-preview" open></details>')
+              $('<details class="hup-accordion hup-seo-improve-preview" open></details>')
                 .append($('<summary></summary>').text('Contenido propuesto'))
                 .append($('<div class="hup-seo-improve-preview__body"></div>').html(d.post_content))
             );
             $body.append(
-              $('<p class="hup-seo-help"></p>').text(
+              $('<p class="hup-hint"></p>').text(
                 r.data.revision
                   ? 'Al aplicar se guarda una revisión: puedes volver a la versión anterior desde el editor.'
                   : 'Este sitio tiene las revisiones desactivadas: el contenido actual no se podrá recuperar.'
@@ -634,12 +645,11 @@
             );
           }
 
-          var $apply = $('<button type="button" class="hup-seo-btn hup-seo-btn-primary hup-seo-apply-improvement">Aplicar mejoras</button>');
-          $body.append($apply);
+          var $apply = $('<button type="button" class="hup-btn hup-seo-apply-improvement">Aplicar mejoras</button>');
 
-          $result.show().empty()
-            .append($('<div class="hup-seo-notice hup-seo-notice-ok"></div>').text('Mejoras generadas (tokens: ' + r.data.tokens + ')'))
-            .append($('<div class="hup-seo-card"></div>').append($body));
+          $result.prop('hidden', false).empty()
+            .append($('<div class="hup-notice hup-notice--success"></div>').text('Mejoras generadas (tokens: ' + r.data.tokens + ')'))
+            .append($('<div class="hup-card"></div>').append($body).append($('<div class="hup-card__foot"></div>').append($apply)));
 
           // El objeto se pasa por .data(), no serializado dentro de un atributo:
           // JSON.stringify no escapa comillas simples, así que un apóstrofo en el
@@ -649,8 +659,8 @@
 
           toast('Mejoras generadas');
         } else {
-          $result.show().empty().append(
-            $('<div class="hup-seo-notice hup-seo-notice-error"></div>').text(r.data.message)
+          $result.prop('hidden', false).empty().append(
+            $('<div class="hup-notice hup-notice--error"></div>').text(r.data.message)
           );
         }
       })
@@ -676,7 +686,7 @@
       .done(function (r) {
         if (r.success) {
           toast('Mejoras aplicadas al post');
-          $btn.text('✓ Aplicado').addClass('hup-seo-btn-outline').removeClass('hup-seo-btn-primary');
+          $btn.text('✓ Aplicado').addClass('hup-btn--secondary').removeClass('');
         } else {
           toast(r.data.message, 'error');
           $btn.prop('disabled', false).text('Aplicar mejoras');
@@ -717,7 +727,7 @@
     var totalUsd = tasks * perTask;
     var totalClp = totalUsd * clpRate;
 
-    $('#calc-result-usd').text('$' + totalUsd.toFixed(4));
+    $('#calc-result-usd').text('$' + totalUsd.toLocaleString('es-CL', { minimumFractionDigits: 4, maximumFractionDigits: 4 }));
     $('#calc-result-clp').text('$' + Math.round(totalClp).toLocaleString('es-CL'));
 
     // Actualizar tabla de costos referenciales
@@ -729,70 +739,54 @@
     var tbody = $('#calc-ref-body');
     if (!tbody.length) return;
 
-    var html = '<tr>';
-    html += '<td><strong>' + model + '</strong></td>';
+    var $row = $('<tr></tr>').append($('<td></td>').append($('<strong></strong>').text(model)));
     volumes.forEach(function(vol) {
       var usd = vol * perTask;
       var clp = Math.round(usd * clpRate);
-      html += '<td>$' + clp.toLocaleString('es-CL') + '</td>';
+      $row.append($('<td></td>').text('$' + clp.toLocaleString('es-CL')));
     });
-    html += '</tr>';
-    tbody.html(html);
+    tbody.empty().append($row);
   }
 
   $(document).on('change input', '#calc-model, #calc-tasks, #calc-clp', calcCost);
-
-  // ── Toggle password visibility ─────────────────────
-  $(document).on('click', '.hup-seo-toggle-pw', function () {
-    var $input = $(this).closest('.hup-seo-api-key-wrap').find('.hup-seo-api-key-input');
-    var type = $input.attr('type') === 'password' ? 'text' : 'password';
-    $input.attr('type', type);
-  });
 
   // ── Test API — mejor UX ────────────────────────────
   // Actualizar badge de estado después de test exitoso
   $(document).on('click', '.hup-seo-test-api', function () {
     var $btn = $(this);
     var provider = $btn.data('provider');
-    var $block = $btn.closest('.hup-seo-card');
+    var $block = $btn.closest('.hup-card');
     var model = $block.find('.hup-seo-model-select').val();
     var $result = $block.find('.hup-seo-conn-result');
-    var $status = $block.find('.hup-seo-api-status .hup-seo-badge');
+    var $status = $block.find('.hup-badge').first();
     var inputKey = $block.find('.hup-seo-api-key-input').val() || '';
 
-    $btn.prop('disabled', true).html('⏳ Probando...');
+    $btn.prop('disabled', true).html('<span class="hup-spinner"></span>Probando...');
     $result.text('').removeClass('hup-seo-conn-ok hup-seo-conn-error');
 
     ajax('test_api', { provider: provider, model: model, api_key: inputKey })
       .done(function (r) {
         if (r.success) {
-          $result.text('✓ ' + r.data.message).addClass('hup-seo-conn-ok');
-          $status.attr('class', 'hup-seo-badge hup-seo-badge-ok').text('✓ Verificada');
+          $result.text(r.data.message).addClass('hup-seo-conn-ok');
+          $status.attr('class', 'hup-badge hup-badge--success hup-badge--dot').text('Verificada');
           toast('Conexión exitosa con ' + provider);
         } else {
-          $result.text('✗ ' + r.data.message).addClass('hup-seo-conn-error');
-          $status.attr('class', 'hup-seo-badge hup-seo-badge-error').text('✗ Error de conexión');
+          $result.text(r.data.message).addClass('hup-seo-conn-error');
+          $status.attr('class', 'hup-badge hup-badge--danger hup-badge--dot').text('Error de conexión');
           toast(r.data.message, 'error');
         }
       })
       .fail(function () {
-        $result.text('✗ Error de red').addClass('hup-seo-conn-error');
+        $result.text('Error de red').addClass('hup-seo-conn-error');
         toast('Error de conexión', 'error');
       })
       .always(function () {
-        $btn.prop('disabled', false).html('🔌 Verificar conexión');
+        $btn.prop('disabled', false).html('<span class="dashicons dashicons-admin-network" aria-hidden="true"></span>Probar conexión');
       });
   });
 
   // ── Init ────────────────────────────────────
   $(function () {
-    // Ocultar notices de WP fuera del layout del plugin
-    $('#wpbody-content').children('.notice, .update-nag, .updated, .error, .warning').each(function () {
-      if (!$(this).closest('.hup-seo-wrap').length) {
-        $(this).hide();
-      }
-    });
-
     // Trigger calc on load
     if ($('#calc-model').length) calcCost();
 
@@ -802,8 +796,8 @@
       if ($target.length) {
         setTimeout(function () {
           $('html, body').animate({ scrollTop: $target.offset().top - 40 }, 400);
-          $target.css({ outline: '2px solid #2271b1', borderRadius: '8px' });
-          setTimeout(function () { $target.css({ outline: '' }); }, 2000);
+          $target.addClass('hcsai-highlight');
+          setTimeout(function () { $target.removeClass('hcsai-highlight'); }, 2000);
         }, 300);
       }
     }

@@ -50,41 +50,39 @@ $categories = get_categories( [ 'hide_empty' => false ] );
 require __DIR__ . '/partials/layout-open.php';
 ?>
 
-<h1 class="hup-seo-page-title">Blog</h1>
-
 <?php require __DIR__ . '/partials/entorno-seo.php'; ?>
 
 <!-- Crear post -->
-<div class="hup-seo-card">
-    <div class="hup-seo-card-header"><h3>Crear post con IA</h3></div>
-    <div class="hup-seo-card-body">
+<div class="hup-card">
+    <div class="hup-card__head"><h3 class="hup-card__title">Crear post con IA</h3></div>
+    <div class="hup-card__body">
         <div class="hup-seo-create-form">
-            <div class="hup-seo-form-row">
-                <label class="hup-seo-form-label">Tema / Keyword</label>
-                <div class="hup-seo-form-field">
-                    <input type="text" id="create-topic" class="hup-seo-input" placeholder="Ej: Beneficios de la proteína whey...">
+            <div class="hup-field">
+                <label class="hup-label" for="create-topic">Tema / Keyword</label>
+                <div class="hup-control">
+                    <input type="text" id="create-topic" class="hup-input" placeholder="Ej: Beneficios de la proteína whey...">
                 </div>
             </div>
-            <div class="hup-seo-form-row hup-seo-form-row-3col">
-                <div class="hup-seo-form-col">
-                    <label class="hup-seo-form-label">Tono</label>
-                    <select id="create-tone" class="hup-seo-select">
+            <div class="hup-grid hup-grid--3">
+                <div class="hup-field hup-field--stacked">
+                    <label class="hup-label" for="create-tone">Tono</label>
+                    <select id="create-tone" class="hup-select">
                         <option value="informativo">Informativo</option>
                         <option value="profesional">Profesional</option>
                         <option value="casual">Casual</option>
                     </select>
                 </div>
-                <div class="hup-seo-form-col">
-                    <label class="hup-seo-form-label">Extensión</label>
-                    <select id="create-length" class="hup-seo-select">
+                <div class="hup-field hup-field--stacked">
+                    <label class="hup-label" for="create-length">Extensión</label>
+                    <select id="create-length" class="hup-select">
                         <option value="short">Corto (~500 palabras)</option>
                         <option value="medium" selected>Mediano (~1000 palabras)</option>
                         <option value="long">Largo (~2000 palabras)</option>
                     </select>
                 </div>
-                <div class="hup-seo-form-col">
-                    <label class="hup-seo-form-label">Categoría</label>
-                    <select id="create-category" class="hup-seo-select">
+                <div class="hup-field hup-field--stacked">
+                    <label class="hup-label" for="create-category">Categoría</label>
+                    <select id="create-category" class="hup-select">
                         <option value="">Sin categoría</option>
                         <?php foreach ( $categories as $cat ) : ?>
                         <option value="<?php echo esc_attr( $cat->term_id ); ?>"><?php echo esc_html( $cat->name ); ?></option>
@@ -93,21 +91,19 @@ require __DIR__ . '/partials/layout-open.php';
                 </div>
             </div>
         </div>
-        <div class="hup-seo-batch-actions">
-            <button type="button" class="hup-seo-btn hup-seo-btn-primary" id="btn-create-post">Crear post con IA</button>
-        </div>
-        <div class="hup-seo-create-result" style="display:none;"></div>
+        <div class="hup-seo-create-result" hidden></div>
     </div>
+    <div class="hup-card__foot"><button type="button" class="hup-btn" id="btn-create-post">Crear post con IA</button></div>
 </div>
 
 <!-- Mejorar post -->
-<div class="hup-seo-card">
-    <div class="hup-seo-card-header"><h3>Mejorar post existente</h3></div>
-    <div class="hup-seo-card-body">
-        <div class="hup-seo-form-row">
-            <label class="hup-seo-form-label">Seleccionar post</label>
-            <div class="hup-seo-form-field">
-                <select id="improve-post-id" class="hup-seo-select">
+<div class="hup-card">
+    <div class="hup-card__head"><h3 class="hup-card__title">Mejorar post existente</h3></div>
+    <div class="hup-card__body">
+        <div class="hup-field">
+            <label class="hup-label" for="improve-post-id">Seleccionar post</label>
+            <div class="hup-control">
+                <select id="improve-post-id" class="hup-select">
                     <option value="">Seleccionar...</option>
                     <?php
                     $posts_list = get_posts( [ 'post_type' => 'post', 'post_status' => 'publish', 'numberposts' => 100 ] );
@@ -118,20 +114,18 @@ require __DIR__ . '/partials/layout-open.php';
                 </select>
             </div>
         </div>
-        <div class="hup-seo-form-row">
-            <label class="hup-seo-form-label">Opciones</label>
-            <div class="hup-seo-form-field hup-seo-checkboxes">
-                <label><input type="checkbox" id="improve-content" checked> Mejorar contenido</label>
-                <label><input type="checkbox" id="improve-seo" checked> Mejorar SEO</label>
-                <label><input type="checkbox" id="improve-cta"> Agregar CTA</label>
-                <label><input type="checkbox" id="improve-tags" checked> Mejorar tags</label>
+        <div class="hup-field">
+            <label class="hup-label">Opciones</label>
+            <div class="hup-control hup-seo-checkboxes">
+                <label class="hup-check"><input type="checkbox" id="improve-content" checked> Mejorar contenido</label>
+                <label class="hup-check"><input type="checkbox" id="improve-seo" checked> Mejorar SEO</label>
+                <label class="hup-check"><input type="checkbox" id="improve-cta"> Agregar CTA</label>
+                <label class="hup-check"><input type="checkbox" id="improve-tags" checked> Mejorar tags</label>
             </div>
         </div>
-        <div class="hup-seo-batch-actions">
-            <button type="button" class="hup-seo-btn hup-seo-btn-primary" id="btn-improve-post">Mejorar con IA</button>
-        </div>
-        <div class="hup-seo-improve-result" style="display:none;"></div>
+        <div class="hup-seo-improve-result" hidden></div>
     </div>
+    <div class="hup-card__foot"><button type="button" class="hup-btn" id="btn-improve-post">Mejorar con IA</button></div>
 </div>
 
 <?php
@@ -143,28 +137,29 @@ do_action( 'hcsai_admin_after_table', 'post' );
 ?>
 
 <!-- Tabla posts -->
-<div class="hup-seo-card">
-    <div class="hup-seo-card-header"><h3>Posts</h3></div>
-    <div class="hup-seo-card-body">
+<div class="hup-card">
+    <div class="hup-card__head"><h3 class="hup-card__title">Posts</h3></div>
+    <div class="hup-card__body">
         <form class="hup-seo-filters" method="get">
-            <input type="hidden" name="page" value="hcsai-blog">
-            <input type="text" name="s" class="hup-seo-input" placeholder="Buscar..." value="<?php echo esc_attr( $search ); ?>">
-            <select name="cat" class="hup-seo-select">
+            <input type="hidden" name="page" value="hcsai">
+            <input type="hidden" name="tab" value="blog">
+            <input type="search" name="s" class="hup-input" placeholder="Buscar posts..." aria-label="Buscar posts" value="<?php echo esc_attr( $search ); ?>">
+            <select name="cat" class="hup-select">
                 <option value="">Todas</option>
                 <?php foreach ( $categories as $cat ) : ?>
                 <option value="<?php echo esc_attr( $cat->term_id ); ?>" <?php selected( $filter_cat, $cat->term_id ); ?>><?php echo esc_html( $cat->name ); ?></option>
                 <?php endforeach; ?>
             </select>
-            <select name="seo_status" class="hup-seo-select">
+            <select name="seo_status" class="hup-select">
                 <option value="">Todos</option>
                 <option value="pending" <?php selected( $filter_seo, 'pending' ); ?>>Sin SEO</option>
                 <option value="done" <?php selected( $filter_seo, 'done' ); ?>>Con SEO</option>
             </select>
-            <button type="submit" class="hup-seo-btn hup-seo-btn-outline">Filtrar</button>
+            <button type="submit" class="hup-btn hup-btn--secondary">Filtrar</button>
         </form>
 
         <?php if ( $query->have_posts() ) : ?>
-        <table class="hup-seo-table">
+        <div class="hcsai-table-scroll"><table class="hup-table">
             <thead>
                 <tr>
                     <th>Post</th>
@@ -192,27 +187,27 @@ do_action( 'hcsai_admin_after_table', 'post' );
                             <?php echo esc_html( $score ); ?>%
                         </button>
                     </td>
-                    <td><?php echo $generated ? esc_html( $generated ) : '<span class="hup-seo-badge hup-seo-badge-warn">Pendiente</span>'; ?></td>
+                    <td data-hcsai-col="generated"><?php if ( $generated ) : ?><span class="hup-badge hup-badge--success hup-badge--dot" title="Generado el <?php echo esc_attr( $generated ); ?>">IA</span><?php else : ?><span class="hup-badge hup-badge--warning">Pendiente</span><?php endif; ?></td>
                     <td>
-                        <button type="button" class="hup-seo-btn hup-seo-btn-sm hup-seo-btn-primary hup-seo-gen-single" data-id="<?php echo esc_attr( $post->ID ); ?>">Completar</button>
-                        <button type="button" class="hup-seo-btn hup-seo-btn-sm hup-seo-btn-outline hup-seo-edit-seo" data-id="<?php echo esc_attr( $post->ID ); ?>">Editar</button>
+                        <button type="button" class="hup-btn hup-btn--sm hup-btn--secondary hup-seo-gen-single" data-id="<?php echo esc_attr( $post->ID ); ?>">Completar</button>
+                        <button type="button" class="hup-btn hup-btn--sm hup-btn--secondary hup-seo-edit-seo" data-id="<?php echo esc_attr( $post->ID ); ?>">Editar</button>
                     </td>
                 </tr>
                 <?php endwhile; wp_reset_postdata(); ?>
             </tbody>
-        </table>
+        </table></div>
 
         <?php
         $total_pages = $query->max_num_pages;
         if ( $total_pages > 1 ) :
         ?>
-        <div class="hup-seo-pagination">
+        <div class="hup-pager"><div class="hup-pager__links">
             <?php echo wp_kses_post( paginate_links( [ 'base' => add_query_arg( 'paged', '%#%' ), 'current' => $paged, 'total' => $total_pages ] ) ); ?>
-        </div>
+        </div></div>
         <?php endif; ?>
 
         <?php else : ?>
-            <p class="hup-seo-empty">No se encontraron posts.</p>
+            <div class="hup-empty"><div class="hup-empty__icon"><span class="dashicons dashicons-edit-page" aria-hidden="true"></span></div><div class="hup-empty__title">No se encontraron posts</div><p>Prueba con otros filtros o crea un post desde esta sección.</p></div>
         <?php endif; ?>
     </div>
 </div>

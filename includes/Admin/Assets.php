@@ -22,16 +22,26 @@ class Assets {
      * Encola assets solo en las páginas del plugin.
      */
     public function enqueue( string $hook ): void {
-        if ( false === strpos( $hook, 'hcsai' ) ) {
+        if ( ! preg_match( '/(?:^|_page_)hcsai(?:-(?:productos|blog|configuracion|paginas))?$/', $hook ) ) {
             return;
         }
 
+        wp_enqueue_style( 'dashicons' );
+
+        // El handle antiguo sigue disponible para las extensiones actuales. Sus
+        // controles específicos todavía dependen de las clases hup-seo-*.
         wp_enqueue_style(
             'hup-seo-admin',
             HCSAI_URL . 'admin/css/hup-seo.css',
             [],
             HCSAI_VERSION
         );
+
+        $ui_version = (string) filemtime( HCSAI_PATH . 'hup-ui/hup-admin.css' );
+        wp_enqueue_style( 'hup-ui-tokens-hcsai', HCSAI_URL . 'hup-ui/tokens.css', [ 'hup-seo-admin' ], (string) filemtime( HCSAI_PATH . 'hup-ui/tokens.css' ) );
+        wp_enqueue_style( 'hup-ui-hcsai', HCSAI_URL . 'hup-ui/hup-admin.css', [ 'hup-ui-tokens-hcsai' ], $ui_version );
+        wp_enqueue_style( 'hcsai-ui', HCSAI_URL . 'admin/css/hcsai-ui.css', [ 'hup-ui-hcsai' ], (string) filemtime( HCSAI_PATH . 'admin/css/hcsai-ui.css' ) );
+        wp_enqueue_script( 'hup-ui-hcsai', HCSAI_URL . 'hup-ui/hup-admin.js', [], (string) filemtime( HCSAI_PATH . 'hup-ui/hup-admin.js' ), true );
 
         // Dependencia de jQuery a propósito: este script solo se encola en el
         // admin (ver el guard de $hook arriba) y WordPress ya carga jQuery en
@@ -40,8 +50,8 @@ class Assets {
         wp_enqueue_script(
             'hcsai-admin',
             HCSAI_URL . 'admin/js/admin.js',
-            [ 'jquery' ],
-            HCSAI_VERSION,
+            [ 'jquery', 'hup-ui-hcsai' ],
+            (string) filemtime( HCSAI_PATH . 'admin/js/admin.js' ),
             true
         );
 
@@ -74,6 +84,9 @@ class Assets {
         }
 
         check_admin_referer( 'hcsai_save_settings' );
+
+        $section = isset( $_POST['hcsai_section'] ) ? sanitize_key( wp_unslash( $_POST['hcsai_section'] ) ) : '';
+        $panel   = isset( $_POST['hcsai_panel'] ) ? sanitize_key( wp_unslash( $_POST['hcsai_panel'] ) ) : 'api';
 
         // Proveedor — validado contra allowlist
         $allowed_providers = array_keys( Settings::providers_display() );
@@ -169,15 +182,24 @@ class Assets {
 
         // Completar: si reemplaza lo que ya tiene contenido. Mismo criterio que
         // el checkbox de abajo: siempre está en el formulario.
-        Settings::save( 'overwrite', isset( $_POST['hcsai_overwrite'] ) ? '1' : '0' );
+        if ( 'overwrite' === $section ) {
+            Settings::save( 'overwrite', isset( $_POST['hcsai_overwrite'] ) ? '1' : '0' );
+        }
 
         // Desinstalación: consentimiento explícito para borrar las API keys.
         // El checkbox siempre forma parte de este formulario, por lo que su
         // ausencia en el POST significa "desmarcado".
-        Settings::save( 'delete_api_keys', isset( $_POST['hcsai_delete_api_keys'] ) ? '1' : '0' );
+        if ( 'uninstall' === $section ) {
+            Settings::save( 'delete_api_keys', isset( $_POST['hcsai_delete_api_keys'] ) ? '1' : '0' );
+        }
 
-        // Redireccionar de vuelta a configuración
-        $redirect_url = admin_url( 'admin.php?page=hcsai-configuracion&saved=1' );
+        // Mantener abierta la tarjeta o pestaña que se acaba de guardar.
+        $redirect_url = add_query_arg( [
+            'page'    => 'hcsai',
+            'tab'     => 'configuracion',
+            'panel'   => $panel,
+            'updated' => $section,
+        ], admin_url( 'admin.php' ) );
         wp_safe_redirect( $redirect_url );
         exit;
     }

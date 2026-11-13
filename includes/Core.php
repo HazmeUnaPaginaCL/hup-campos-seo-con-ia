@@ -77,7 +77,7 @@ class Core {
      * @return array
      */
     public function add_plugin_action_links( array $links ): array {
-        $configurar = '<a href="' . esc_url( admin_url( 'admin.php?page=hcsai-configuracion' ) ) . '">'
+        $configurar = '<a href="' . esc_url( admin_url( 'admin.php?page=hcsai&tab=configuracion' ) ) . '">'
             . esc_html__( 'Configurar', 'hup-campos-seo-con-ia' ) . '</a>';
 
         array_unshift( $links, $configurar );

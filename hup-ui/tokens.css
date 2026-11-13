@@ -1,0 +1,68 @@
+/* HUP Admin UI — tokens 1.0.0
+   Única fuente de verdad de colores, radios, sombras y medidas.
+   Cambia un valor aquí y cambia en todos los componentes. */
+
+.hup-app {
+  /* Marca */
+  --hup-primary: #2f5bd3;
+  --hup-primary-hover: #244bb5;
+  --hup-primary-soft: #eef2fc;     /* fondos de selección, badge versión */
+  --hup-primary-line: #c9d5f5;     /* borde de botón secundario */
+
+  /* Texto */
+  --hup-ink: #1a1f2b;              /* texto principal */
+  --hup-muted: #5b6475;            /* texto secundario, ayudas */
+  --hup-subtle: #8a92a3;           /* íconos inactivos, placeholders */
+
+  /* Superficies y bordes */
+  --hup-bg: #f1f2f7;               /* fondo del área de contenido */
+  --hup-surface: #fff;             /* tarjetas */
+  --hup-surface-2: #f6f7fa;        /* bloques internos, cabecera de tabla */
+  --hup-border: #eceef3;           /* borde de tarjeta */
+  --hup-border-strong: #d8dce4;    /* borde de inputs */
+  --hup-code-bg: #161b26;          /* bloque de shortcode */
+
+  /* Estados */
+  --hup-success: #1f8a4c; --hup-success-soft: #e8f5ee;
+  --hup-warning: #a86400; --hup-warning-soft: #fdf3e2;
+  --hup-danger:  #c93b3b; --hup-danger-soft:  #fcecec; --hup-danger-hover: #ad2f2f;
+
+  /* Color propio del plugin: SOLO para .hup-header__icon. Sobrescribir inline en .hup-app */
+  --hup-plugin: #2f5bd3;
+
+  /* Menú lateral (claro por defecto) */
+  --hup-nav-bg: #fff;
+  --hup-nav-ink: #4a5263;
+  --hup-nav-icon: #8a92a3;
+  --hup-nav-active-bg: var(--hup-primary-soft);
+  --hup-nav-active-ink: var(--hup-primary);
+  --hup-nav-active-icon: var(--hup-primary);
+  --hup-nav-border: var(--hup-border);
+
+  /* Radios */
+  --hup-radius-sm: 10px;           /* inputs, selects */
+  --hup-radius-md: 12px;           /* avisos, listas internas, bloques */
+  --hup-radius: 16px;              /* tarjetas */
+  --hup-radius-xl: 20px;           /* contenedor .hup-app */
+  /* Botones y segmentados: píldora (altura / 2) */
+
+  /* Sombras */
+  --hup-shadow: 0 1px 2px rgba(20,24,40,.04), 0 6px 20px rgba(20,24,40,.05);
+
+  /* Medidas de referencia (documentación; los componentes ya las aplican)
+     Alturas: input 38 · botón 38 · segmentado 36 · botón chico 30 · botón ícono 34
+     Columnas: menú 220 · label 200 · aside 300–320
+     Espaciado: 4 8 12 16 20 24 32 · tarjeta 20×24 · separación entre tarjetas 20
+     Tipografía: página 20/600 · header 18/600 · tarjeta 16/600 · label 13/600 · texto 14 · ayuda 12 */
+}
+
+/* Menú oscuro opcional: <div class="hup-app hup-app--nav-dark"> */
+.hup-app--nav-dark {
+  --hup-nav-bg: #161b26;
+  --hup-nav-ink: #aab2c2;
+  --hup-nav-icon: #7d8698;
+  --hup-nav-active-bg: #222a39;
+  --hup-nav-active-ink: #fff;
+  --hup-nav-active-icon: #7f9cf0;
+  --hup-nav-border: transparent;
+}

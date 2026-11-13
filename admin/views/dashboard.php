@@ -81,86 +81,74 @@ require __DIR__ . '/partials/layout-open.php';
 ?>
 
 <!-- Stats -->
-<div class="hup-seo-stats-grid">
+<div class="hup-grid hup-grid--3">
     <?php if ( $has_woo ) : ?>
-    <a href="<?php echo esc_url( admin_url( 'admin.php?page=hcsai-productos&seo_status=done' ) ); ?>" class="hup-seo-stat-card" style="text-decoration:none;cursor:pointer;" title="Ver productos con SEO">
-        <div class="hup-seo-stat-number"><?php echo esc_html( $products_with_seo ); ?> / <?php echo esc_html( $products_total ); ?></div>
-        <div class="hup-seo-stat-label">Productos con SEO</div>
+    <a href="<?php echo esc_url( admin_url( 'admin.php?page=hcsai&tab=productos&seo_status=done' ) ); ?>" class="hup-stat" title="Ver productos con SEO">
+        <div class="hup-stat__label">Productos con SEO</div>
+        <div class="hup-stat__value"><?php echo esc_html( $products_with_seo ); ?> / <?php echo esc_html( $products_total ); ?></div>
     </a>
-    <a href="<?php echo esc_url( admin_url( 'admin.php?page=hcsai-productos&seo_status=pending' ) ); ?>" class="hup-seo-stat-card <?php echo $products_no_seo > 0 ? 'hup-seo-stat-warn' : ''; ?>" style="text-decoration:none;cursor:pointer;" title="Ver productos sin SEO">
-        <div class="hup-seo-stat-number"><?php echo esc_html( $products_no_seo ); ?></div>
-        <div class="hup-seo-stat-label">Productos sin SEO</div>
+    <a href="<?php echo esc_url( admin_url( 'admin.php?page=hcsai&tab=productos&seo_status=pending' ) ); ?>" class="hup-stat" title="Ver productos sin SEO">
+        <div class="hup-stat__label">Productos sin SEO</div>
+        <div class="hup-stat__value"><?php echo esc_html( $products_no_seo ); ?></div>
     </a>
     <?php endif; ?>
-    <div class="hup-seo-stat-card <?php echo $posts_no_seo > 0 ? 'hup-seo-stat-warn' : ''; ?>">
-        <div class="hup-seo-stat-number"><?php echo esc_html( $posts_no_seo ); ?></div>
-        <div class="hup-seo-stat-label">Posts sin SEO</div>
+    <div class="hup-stat">
+        <div class="hup-stat__label">Posts sin SEO</div>
+        <div class="hup-stat__value"><?php echo esc_html( $posts_no_seo ); ?></div>
     </div>
-    <div class="hup-seo-stat-card">
-        <div class="hup-seo-stat-number">$<?php echo esc_html( number_format( $monthly, 4 ) ); ?></div>
-        <div class="hup-seo-stat-label">Gasto mensual (USD)</div>
+    <div class="hup-stat">
+        <div class="hup-stat__label">Gasto mensual (USD)</div>
+        <div class="hup-stat__value">$<?php echo esc_html( number_format( $monthly, 4, ',', '.' ) ); ?></div>
     </div>
-    <div class="hup-seo-stat-card">
-        <div class="hup-seo-stat-number"><?php echo esc_html( number_format( $stats['total_generations'] ) ); ?></div>
-        <div class="hup-seo-stat-label">Generaciones totales</div>
+    <div class="hup-stat">
+        <div class="hup-stat__label">Generaciones totales</div>
+        <div class="hup-stat__value"><?php echo esc_html( number_format( $stats['total_generations'], 0, ',', '.' ) ); ?></div>
     </div>
 </div>
 
 <!-- Sistema -->
-<div class="hup-seo-card" style="margin-bottom:8px;">
-    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
-        <p style="margin:0; font-size:13px; color:var(--hup-seo-text-3);">
-            ⚠️ ¿Los scores no reflejan el contenido actual? Usa <strong>Escanear scores</strong> en la sección Productos para leer los campos SEO existentes (Yoast, RankMath, AIOSEO o nativos) sin usar IA.
-        </p>
-        <?php if ( $has_woo ) : ?>
-        <a href="<?php echo esc_url( admin_url( 'admin.php?page=hcsai-productos#hcsai-scan' ) ); ?>" class="hup-seo-btn hup-seo-btn-outline hup-seo-btn-sm">
-            🔍 Escanear productos
-        </a>
-        <?php endif; ?>
-    </div>
-</div>
+<div class="hup-notice"><span class="dashicons dashicons-info" aria-hidden="true"></span><p>Si los scores no reflejan el contenido actual, escanea los productos para leer sus campos SEO sin usar IA. <?php if ( $has_woo ) : ?><a href="<?php echo esc_url( admin_url( 'admin.php?page=hcsai&tab=productos#hcsai-scan' ) ); ?>">Ir a Productos</a><?php endif; ?></p></div>
 
-<div class="hup-seo-card">
-    <h3>Estado del sistema</h3>
-    <div class="hup-seo-system-grid" style="margin-top: 12px;">
-        <div class="hup-seo-system-item">
-            <span class="hup-seo-system-label">Proveedor IA</span>
-            <span class="hup-seo-system-value"><?php echo esc_html( $providers[ $provider ] ?? $provider ); ?></span>
+<div class="hup-card">
+    <div class="hup-card__head"><h3 class="hup-card__title">Estado del sistema</h3></div>
+    <div class="hup-card__body"><div class="hup-status-row">
+        <div>
+            <span>Proveedor IA</span>
+            <strong><?php echo esc_html( $providers[ $provider ] ?? $provider ); ?></strong>
         </div>
-        <div class="hup-seo-system-item">
-            <span class="hup-seo-system-label">Conexión API</span>
-            <span class="hup-seo-system-value">
+        <div>
+            <span>Conexión API</span>
                 <?php if ( 'ok' === $conn_status ) : ?>
-                    <span style="color: var(--hup-seo-success);">● Verificada</span>
+                    <strong class="hup-badge hup-badge--success hup-badge--dot">Verificada</strong>
                 <?php elseif ( 'error' === $conn_status ) : ?>
-                    <span style="color: var(--hup-seo-danger);">● Error</span>
+                    <strong class="hup-badge hup-badge--danger hup-badge--dot">Error</strong>
                 <?php else : ?>
-                    <span style="color: var(--hup-seo-warning);">● Sin verificar</span>
+                    <strong class="hup-badge hup-badge--warning hup-badge--dot">Sin verificar</strong>
                 <?php endif; ?>
-            </span>
         </div>
-        <div class="hup-seo-system-item">
-            <span class="hup-seo-system-label">Modelo activo</span>
-            <span class="hup-seo-system-value"><?php echo esc_html( $model ); ?></span>
+        <div>
+            <span>Modelo activo</span>
+            <strong><?php echo esc_html( $model ); ?></strong>
         </div>
-        <div class="hup-seo-system-item">
-            <span class="hup-seo-system-label">Plugin SEO</span>
-            <span class="hup-seo-system-value"><?php echo esc_html( $seo_name ); ?></span>
+        <div>
+            <span>Plugin SEO</span>
+            <strong><?php echo esc_html( $seo_name ); ?></strong>
         </div>
-        <div class="hup-seo-system-item">
-            <span class="hup-seo-system-label">WooCommerce</span>
-            <span class="hup-seo-system-value"><?php echo $has_woo ? 'Activo' : 'No detectado'; ?></span>
+        <div>
+            <span>WooCommerce</span>
+            <strong><?php echo $has_woo ? 'Activo' : 'No detectado'; ?></strong>
         </div>
-    </div>
+    </div></div>
 </div>
 
 <!-- Log reciente -->
-<div class="hup-seo-card">
-    <h3 style="margin-bottom: 16px;">Últimas generaciones</h3>
+<div class="hup-card">
+    <div class="hup-card__head"><h3 class="hup-card__title">Últimas generaciones</h3></div>
+    <div class="hup-card__body">
     <?php if ( empty( $last_logs ) ) : ?>
-        <p style="color: var(--hup-seo-text-3); text-align: center; padding: 24px;">No hay generaciones registradas aún.</p>
+        <div class="hup-empty"><div class="hup-empty__icon"><span class="dashicons dashicons-list-view" aria-hidden="true"></span></div><div class="hup-empty__title">Aún no hay generaciones</div><p>Completa un producto o post para ver aquí su historial.</p></div>
     <?php else : ?>
-    <table class="hup-seo-table">
+    <div class="hcsai-table-scroll"><table class="hup-table">
         <thead>
             <tr>
                 <th>Post</th>
@@ -184,25 +172,25 @@ require __DIR__ . '/partials/layout-open.php';
                 <td>$<?php echo esc_html( number_format( $log->cost_usd * $usd_to_clp, 0, ',', '.' ) ); ?></td>
                 <td>
                     <?php if ( 'ok' === $log->status ) : ?>
-                        <span class="hup-seo-score hup-seo-score--good">OK</span>
+                        <span class="hup-badge hup-badge--success hup-badge--dot">Completado</span>
                     <?php else : ?>
-                        <span class="hup-seo-score hup-seo-score--low" title="<?php echo esc_attr( $log->error_msg ?? '' ); ?>"
-                              style="cursor:help;">Error &#9432;</span>
+                        <span class="hup-badge hup-badge--danger hup-badge--dot" title="<?php echo esc_attr( $log->error_msg ?? '' ); ?>">Error</span>
                         <?php if ( ! empty( $log->error_msg ) ) : ?>
-                        <div style="font-size:11px;color:#991b1b;max-width:200px;word-break:break-word;margin-top:2px;"><?php echo esc_html( mb_substr( $log->error_msg, 0, 100 ) ); ?></div>
+                        <div class="hcsai-log-error"><?php echo esc_html( mb_substr( $log->error_msg, 0, 100 ) ); ?></div>
                         <?php endif; ?>
                     <?php endif; ?>
                 </td>
                 <td><?php
                     $dt = new \DateTime( $log->created_at, new \DateTimeZone( 'UTC' ) );
                     $dt->setTimezone( new \DateTimeZone( wp_timezone_string() ) );
-                    echo esc_html( $dt->format( 'Y-m-d H:i:s' ) );
+                    echo esc_html( $dt->format( 'd/m/Y H:i' ) );
                 ?></td>
             </tr>
             <?php endforeach; ?>
         </tbody>
-    </table>
+    </table></div>
     <?php endif; ?>
+    </div>
 </div>
 
 <?php require __DIR__ . '/partials/layout-close.php'; ?>

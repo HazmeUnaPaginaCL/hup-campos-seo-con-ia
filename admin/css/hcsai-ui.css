@@ -1,0 +1,46 @@
+/* Elementos propios de Campos SEO con IA sobre el sistema HUP. */
+.hup-app .hcsai-panel { display: flex; flex-direction: column; gap: 20px; }
+.hup-app .hcsai-table-scroll { max-width: 100%; overflow-x: auto; }
+.hup-app .hcsai-table-scroll .hup-table { min-width: 680px; }
+.hup-app .hcsai-grid-span-2 { grid-column: span 2; }
+.hup-app .hup-field > .hup-hint { grid-column: 2; }
+.hup-app .hup-seo-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.hup-app .hup-seo-filters .hup-input { width: 200px; }
+.hup-app .hup-seo-filters .hup-select { width: auto; min-width: 135px; }
+.hup-app .hup-seo-create-form { display: flex; flex-direction: column; gap: 20px; }
+.hup-app .hup-seo-checkboxes { display: flex; flex-wrap: wrap; gap: 12px; }
+.hup-app .hup-seo-batch-actions { display: flex; align-items: center; gap: 8px; }
+.hup-app .hup-seo-pagination { margin-top: 16px; }
+.hup-app .hcsai-sort-link { color: var(--hup-muted); text-decoration: none; white-space: nowrap; }
+.hup-app .hcsai-sort-arrow { color: var(--hup-subtle); font-size: 12px; }
+.hup-app .hup-pager .hup-label { padding: 0; }
+.hup-app .hcsai-scan-progress { margin-top: 16px; }
+.hup-app .hcsai-scan-progress__body { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+.hup-app .sc-log { max-height: 150px; overflow: auto; padding: 8px 10px; border: 1px solid var(--hup-border); border-radius: var(--hup-radius-sm); background: var(--hup-surface); font: 12px/1.6 ui-monospace, SFMono-Regular, Consolas, monospace; }
+.hup-app .sc-log > div { padding: 1px 0; }
+.hup-app .sc-log .is-ok { color: var(--hup-success); }
+.hup-app .sc-log .is-error { color: var(--hup-danger); }
+.hup-app .hcsai-highlight { outline: 2px solid var(--hup-primary); outline-offset: 3px; }
+.hup-app .hcsai-log-error { max-width: 220px; margin-top: 4px; color: var(--hup-danger); font-size: 11px; overflow-wrap: anywhere; }
+.hup-app .hup-seo-score { border-radius: 12px; font-weight: 600; }
+.hup-app .hup-seo-score-score-0 { color: var(--hup-danger); background: var(--hup-danger-soft); }
+.hup-app .hup-seo-score-score-1, .hup-app .hup-seo-score-score-2 { color: var(--hup-warning); background: var(--hup-warning-soft); }
+.hup-app .hup-seo-score-score-3 { color: var(--hup-success); background: var(--hup-success-soft); }
+.hup-app .hup-seo-modal-section { border-color: var(--hup-border); border-radius: var(--hup-radius-md); }
+.hup-app .hup-seo-modal-section .hup-field { margin-top: 16px; }
+.hup-app .hup-seo-modal-section .hup-field > .hup-input { grid-column: 2; max-width: none; }
+.hup-app .hup-seo-modal-section .hup-field > .hup-seo-char-count { grid-column: 2; }
+.hup-app .hup-seo-modal-section .hup-field > .hup-hint { grid-column: 2; }
+.hup-app .hup-seo-modal-status { border-radius: var(--hup-radius-md); }
+.hup-app .hup-seo-score-detail { border-radius: var(--hup-radius-md); border-color: var(--hup-border); }
+.hup-app .hup-seo-score-detail__item.is-ok { border-left-color: var(--hup-success); }
+.hup-app .hup-seo-score-detail__item.is-parcial { border-left-color: var(--hup-warning); }
+.hup-app .hup-seo-score-detail__item.is-vacio { border-left-color: var(--hup-danger); }
+.hup-app .hcsai-toast--error { background: var(--hup-danger); }
+@media (max-width: 960px) {
+  .hup-app .hcsai-grid-span-2 { grid-column: auto; }
+  .hup-app .hup-field > .hup-hint,
+  .hup-app .hup-seo-modal-section .hup-field > .hup-input,
+  .hup-app .hup-seo-modal-section .hup-field > .hup-seo-char-count,
+  .hup-app .hup-seo-modal-section .hup-field > .hup-hint { grid-column: 1; }
+}

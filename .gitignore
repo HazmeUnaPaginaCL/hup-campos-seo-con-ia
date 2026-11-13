@@ -34,6 +34,7 @@ wp-content/cache/
 
 # Configuración local de Claude Code (no es parte del plugin)
 .claude/
+.diseno-plugin/
 
 # Scripts de prueba internos
 tests/

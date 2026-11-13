@@ -21,7 +21,7 @@ defined( 'ABSPATH' ) || exit;
 
 if ( ! class_exists( 'WooCommerce' ) ) {
     require __DIR__ . '/partials/layout-open.php';
-    echo '<div class="hup-seo-notice hup-seo-notice-warn">WooCommerce no está activo. Esta sección requiere WooCommerce.</div>';
+    echo '<div class="hup-notice hup-notice--warning"><span class="dashicons dashicons-warning" aria-hidden="true"></span><p>WooCommerce no está activo. Esta sección requiere WooCommerce.</p></div>';
     require __DIR__ . '/partials/layout-close.php';
     return;
 }
@@ -146,8 +146,6 @@ if ( null !== $hcsai_score_filter ) {
 require __DIR__ . '/partials/layout-open.php';
 ?>
 
-<h1 class="hup-seo-page-title">Productos</h1>
-
 <?php require __DIR__ . '/partials/entorno-seo.php'; ?>
 
 <?php
@@ -160,44 +158,45 @@ do_action( 'hcsai_admin_after_table', 'product' );
 
 
 <!-- Tabla de productos -->
-<div class="hup-seo-card" id="hcsai-scan">
-    <div class="hup-seo-card-header">
-        <h3>📋 Productos</h3>
+<div class="hup-card" id="hcsai-scan">
+    <div class="hup-card__head">
+        <h3 class="hup-card__title">Productos</h3>
     </div>
-    <div class="hup-seo-card-body">
+    <div class="hup-card__body">
 
-        <form class="hup-seo-filters" method="get" style="flex-wrap:wrap;gap:8px;align-items:center;">
-            <input type="hidden" name="page" value="hcsai-productos">
-            <input type="text" name="s" class="hup-seo-input" placeholder="Buscar..." value="<?php echo esc_attr( $search ); ?>" style="min-width:180px;">
-            <select name="cat" class="hup-seo-select">
+        <form class="hup-seo-filters" method="get">
+            <input type="hidden" name="page" value="hcsai">
+            <input type="hidden" name="tab" value="productos">
+            <input type="search" name="s" class="hup-input" placeholder="Buscar productos..." aria-label="Buscar productos" value="<?php echo esc_attr( $search ); ?>">
+            <select name="cat" class="hup-select">
                 <option value="">Todas las categorías</option>
                 <?php if ( is_array( $categories ) ) : foreach ( $categories as $cat ) : ?>
                 <option value="<?php echo esc_attr( $cat->term_id ); ?>" <?php selected( $filter_cat, $cat->term_id ); ?>><?php echo esc_html( $cat->name ); ?></option>
                 <?php endforeach; endif; ?>
             </select>
-            <select name="seo_status" class="hup-seo-select">
+            <select name="seo_status" class="hup-select">
                 <option value="">Estado SEO</option>
                 <option value="pending" <?php selected( $filter_seo, 'pending' ); ?>>Sin SEO (0%)</option>
                 <option value="done" <?php selected( $filter_seo, 'done' ); ?>>Con SEO</option>
                 <option value="manual" <?php selected( $filter_seo, 'manual' ); ?>>Manual</option>
                 <option value="ai" <?php selected( $filter_seo, 'ai' ); ?>>Generado con IA</option>
             </select>
-            <select name="score_level" class="hup-seo-select">
+            <select name="score_level" class="hup-select">
                 <option value="">Score: todos</option>
-                <option value="0" <?php selected( $filter_score_lv, '0' ); ?> style="color:#991b1b;">🔴 0–24%</option>
-                <option value="1" <?php selected( $filter_score_lv, '1' ); ?> style="color:#c2410c;">🟠 25–49%</option>
-                <option value="2" <?php selected( $filter_score_lv, '2' ); ?> style="color:#b45309;">🟡 50–74%</option>
-                <option value="3" <?php selected( $filter_score_lv, '3' ); ?> style="color:#15803d;">🟢 75–100%</option>
+                <option value="0" <?php selected( $filter_score_lv, '0' ); ?>>0–24%</option>
+                <option value="1" <?php selected( $filter_score_lv, '1' ); ?>>25–49%</option>
+                <option value="2" <?php selected( $filter_score_lv, '2' ); ?>>50–74%</option>
+                <option value="3" <?php selected( $filter_score_lv, '3' ); ?>>75–100%</option>
             </select>
-            <button type="submit" class="hup-seo-btn hup-seo-btn-outline">Filtrar</button>
-            <button type="button" class="hup-seo-btn hup-seo-btn-outline" id="btn-scan-products" data-post-type="product" title="Lee los campos SEO existentes sin usar IA">
-                🔍 Escanear productos
+            <button type="submit" class="hup-btn hup-btn--secondary">Filtrar</button>
+            <button type="button" class="hup-btn hup-btn--secondary" id="btn-scan-products" data-post-type="product" title="Lee los campos SEO existentes sin usar IA">
+                <span class="dashicons dashicons-search" aria-hidden="true"></span>Escanear productos
             </button>
         </form>
 
 
         <?php if ( $query->have_posts() ) : ?>
-        <table class="hup-seo-table">
+        <div class="hcsai-table-scroll"><table class="hup-table">
             <thead>
 <?php
 $orderby = sanitize_key( $_GET['orderby'] ?? '' );
@@ -215,29 +214,17 @@ if ( ! function_exists( 'hcsai_sort_arrow' ) ) {
     function hcsai_sort_arrow( $col ) {
         $cur_orderby = sanitize_key( $_GET['orderby'] ?? '' );
         $cur_order   = sanitize_key( $_GET['order'] ?? 'asc' );
-        if ( $col !== $cur_orderby ) return ' <span style="opacity:.35;font-size:10px;">&#8597;</span>';
-        return 'asc' === $cur_order ? ' <span style="font-size:10px;">&#8593;</span>' : ' <span style="font-size:10px;">&#8595;</span>';
+        if ( $col !== $cur_orderby ) return ' <span class="hcsai-sort-arrow">&#8597;</span>';
+        return 'asc' === $cur_order ? ' <span class="hcsai-sort-arrow">&#8593;</span>' : ' <span class="hcsai-sort-arrow">&#8595;</span>';
     }
 }
 ?>
                 <tr>
-                    <th><a href="<?php echo esc_url( hcsai_sort_url( 'title' ) ); ?>" style="color:inherit;text-decoration:none;">Producto<?php echo wp_kses_post( hcsai_sort_arrow( 'title' ) ); ?></a></th>
-                    <th><a href="<?php echo esc_url( hcsai_sort_url( 'category' ) ); ?>" style="color:inherit;text-decoration:none;">Categoría<?php echo wp_kses_post( hcsai_sort_arrow( 'category' ) ); ?></a></th>
-                    <th><a href="<?php echo esc_url( hcsai_sort_url( 'score' ) ); ?>" style="color:inherit;text-decoration:none;">Score<?php echo wp_kses_post( hcsai_sort_arrow( 'score' ) ); ?></a></th>
+                    <th><a class="hcsai-sort-link" href="<?php echo esc_url( hcsai_sort_url( 'title' ) ); ?>">Producto<?php echo wp_kses_post( hcsai_sort_arrow( 'title' ) ); ?></a></th>
+                    <th>Categoría</th>
+                    <th><a class="hcsai-sort-link" href="<?php echo esc_url( hcsai_sort_url( 'score' ) ); ?>">Score<?php echo wp_kses_post( hcsai_sort_arrow( 'score' ) ); ?></a></th>
                     <th>Generado</th>
-                    <th style="font-size:10px;white-space:nowrap;padding:4px 8px;">
-                        <?php
-                        $native_cols = [ 'product_description'=>'DES', 'short_description'=>'COR', 'tags'=>'ETI', 'alt_text'=>'ALT' ];
-                        $seo_cols    = [ 'seo_title'=>'TIT', 'meta_description'=>'MET', 'focus_keyword'=>'KEY', 'og_title'=>'OGT', 'og_description'=>'OGD' ];
-                        $cell_w = 28;
-                        echo '<span style="display:inline-flex;gap:2px;align-items:flex-end;">';
-                        foreach ( $native_cols as $lbl ) echo '<span style="display:inline-flex;flex-direction:column;align-items:center;width:' . (int) $cell_w . 'px;line-height:1.3;"><span style="opacity:.6;font-size:9px;">WP</span><span style="font-weight:700;">' . esc_html($lbl) . '</span></span>';
-                        if ( 'none' !== $seo_plugin ) :
-                            foreach ( $seo_cols as $lbl ) echo '<span style="display:inline-flex;flex-direction:column;align-items:center;width:' . (int) $cell_w . 'px;line-height:1.3;"><span style="opacity:.6;font-size:9px;">SEO</span><span style="font-weight:700;">' . esc_html($lbl) . '</span></span>';
-                        endif;
-                        echo '</span>';
-                        ?>
-                    </th>
+                    <th>Campos completos</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -280,46 +267,36 @@ if ( ! function_exists( 'hcsai_sort_arrow' ) ) {
                             <?php echo esc_html( $score ); ?>%
                         </button>
                     </td>
-                    <td>
+                    <td data-hcsai-col="generated">
                         <?php if ( $generated ) : ?>
-                            <span class="hup-seo-badge hup-seo-badge-ai" title="Generado con IA el <?php echo esc_attr( $generated ); ?>">🤖 IA</span>
+                            <span class="hup-badge hup-badge--success hup-badge--dot" title="Generado con IA el <?php echo esc_attr( $generated ); ?>">IA</span>
                         <?php elseif ( $scanned && $score > 0 ) : ?>
-                            <span class="hup-seo-badge hup-seo-badge-manual" title="Contenido manual escaneado el <?php echo esc_attr( $scanned ); ?>">✏️ Manual</span>
+                            <span class="hup-badge hup-badge--dot" title="Contenido manual escaneado el <?php echo esc_attr( $scanned ); ?>">Manual</span>
                         <?php elseif ( $score > 0 ) : ?>
-                            <span class="hup-seo-badge hup-seo-badge-manual" title="Tiene contenido SEO — haz clic en Escanear para actualizar">✏️ Manual</span>
+                            <span class="hup-badge hup-badge--dot" title="Tiene contenido SEO — haz clic en Escanear para actualizar">Manual</span>
                         <?php else : ?>
-                            <span class="hup-seo-badge hup-seo-badge-warn">Pendiente</span>
+                            <span class="hup-badge hup-badge--warning">Pendiente</span>
                         <?php endif; ?>
                     </td>
-                    <td style="white-space:nowrap;font-size:13px;padding:4px 8px;"><?php
-                        $cell_w = 28;
-                        echo '<span style="display:inline-flex;gap:2px;">';
-                        foreach ( $cf as $cf_key => $cf_filled ) :
-                            if ( $cf_filled ) :
-                                echo '<span style="width:' . (int) $cell_w . 'px;text-align:center;color:#15803d;font-size:13px;" title="' . esc_attr( $cf_key ) . ' — lleno">✓</span>';
-                            else :
-                                echo '<span style="width:' . (int) $cell_w . 'px;text-align:center;color:#d1d5db;font-size:13px;" title="' . esc_attr( $cf_key ) . ' — vacío">✗</span>';
-                            endif;
-                        endforeach;
-                        echo '</span>';
-                    ?></td>
+                    <td><span class="hup-badge <?php echo count( array_filter( $cf ) ) === count( $cf ) ? 'hup-badge--success' : 'hup-badge--warning'; ?>"><?php echo esc_html( count( array_filter( $cf ) ) ); ?> de <?php echo esc_html( count( $cf ) ); ?></span></td>
                     <td>
-                        <button type="button" class="hup-seo-btn hup-seo-btn-sm hup-seo-btn-primary hup-seo-gen-single" data-id="<?php echo esc_attr( $post->ID ); ?>">Completar</button>
-                        <button type="button" class="hup-seo-btn hup-seo-btn-sm hup-seo-btn-outline hup-seo-edit-seo" data-id="<?php echo esc_attr( $post->ID ); ?>">Editar</button>
+                        <button type="button" class="hup-btn hup-btn--sm hup-btn--secondary hup-seo-gen-single" data-id="<?php echo esc_attr( $post->ID ); ?>">Completar</button>
+                        <button type="button" class="hup-btn hup-btn--sm hup-btn--secondary hup-seo-edit-seo" data-id="<?php echo esc_attr( $post->ID ); ?>">Editar</button>
                     </td>
                 </tr>
                 <?php endwhile; wp_reset_postdata(); ?>
             </tbody>
-        </table>
+        </table></div>
 
         <!-- Paginación + por página -->
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:12px;">
-            <div>
+        <div class="hup-pager">
+            <div class="hup-pager__links">
             <?php
             $total_pages = $query->max_num_pages;
             if ( $total_pages > 1 ) :
             $paginate_base = add_query_arg( array_filter( [
-                'page'        => 'hcsai-productos',
+                'page'        => 'hcsai',
+                'tab'         => 'productos',
                 's'           => $search ?: null,
                 'cat'         => $filter_cat ?: null,
                 'seo_status'  => $filter_seo ?: null,
@@ -338,14 +315,15 @@ if ( ! function_exists( 'hcsai_sort_arrow' ) ) {
             endif;
             ?>
             </div>
-            <form method="get" style="display:flex;align-items:center;gap:6px;">
-                <input type="hidden" name="page" value="hcsai-productos">
+            <form method="get" class="hup-inline">
+                <input type="hidden" name="page" value="hcsai">
+                <input type="hidden" name="tab" value="productos">
                 <?php if ( $search ) : ?><input type="hidden" name="s" value="<?php echo esc_attr( $search ); ?>"><?php endif; ?>
                 <?php if ( $filter_cat ) : ?><input type="hidden" name="cat" value="<?php echo esc_attr( $filter_cat ); ?>"><?php endif; ?>
                 <?php if ( $filter_seo ) : ?><input type="hidden" name="seo_status" value="<?php echo esc_attr( $filter_seo ); ?>"><?php endif; ?>
                 <?php if ( $filter_score_lv ) : ?><input type="hidden" name="score_level" value="<?php echo esc_attr( $filter_score_lv ); ?>"><?php endif; ?>
-                <label style="font-size:13px;color:#64748b;">Productos por página:</label>
-                <select name="per_page" class="hup-seo-select" style="width:80px;" onchange="this.form.submit()">
+                <label class="hup-label" for="hcsai-per-page">Por página</label>
+                <select name="per_page" id="hcsai-per-page" class="hup-select hup-input--sm" onchange="this.form.submit()">
                     <?php foreach ( $per_page_opts as $pp ) : ?>
                     <option value="<?php echo esc_attr( $pp ); ?>" <?php selected( $per_page, $pp ); ?>><?php echo esc_html( $pp ); ?></option>
                     <?php endforeach; ?>
@@ -354,7 +332,7 @@ if ( ! function_exists( 'hcsai_sort_arrow' ) ) {
         </div>
 
         <?php else : ?>
-            <p class="hup-seo-empty">No se encontraron productos.</p>
+            <div class="hup-empty"><div class="hup-empty__icon"><span class="dashicons dashicons-products" aria-hidden="true"></span></div><div class="hup-empty__title">No se encontraron productos</div><p>Prueba con otros filtros o revisa tus productos en WooCommerce.</p></div>
         <?php endif; ?>
     </div>
 </div>
