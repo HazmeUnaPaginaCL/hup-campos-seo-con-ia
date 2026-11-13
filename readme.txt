@@ -4,7 +4,7 @@ Tags: seo, ai, openai, gemini, woocommerce
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -133,6 +133,11 @@ Uninstalling removes the configuration options, the log table, the temporary cac
 
 == Changelog ==
 
+= 1.1.1 =
+* Fixed the "días" unit in Configuración → Log de generaciones, which appeared below the field instead of next to it.
+* Prompt and business profile text areas now use the full width of their card.
+* "A qué se dedica" now shows its label above the field, like the rest of the business profile.
+
 = 1.1.0 =
 * Redesigned admin panel with the shared HUP design: one page with Dashboard, Productos, Blog and Configuración sections, consistent cards, forms and notifications. Old menu links keep working.
 * Fixed misaligned fields in the business profile form.
@@ -175,6 +180,9 @@ Uninstalling removes the configuration options, the log table, the temporary cac
 * API keys encrypted with AES-256-CBC.
 
 == Upgrade Notice ==
+
+= 1.1.1 =
+Small layout fixes in Configuración. No settings change.
 
 = 1.1.0 =
 Admin panel redesign. No settings change.

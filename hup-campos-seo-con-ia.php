@@ -3,7 +3,7 @@
  * Plugin Name:       HUP - Campos SEO con IA
  * Plugin URI:        https://hazmeunapagina.cl/hup-campos-seo-ia
  * Description:       Rellena con IA los campos de tus productos y posts —descripciones, etiquetas y alt text— con textos escritos para posicionar. Detecta RankMath, Yoast SEO y All In One SEO.
- * Version:           1.1.0
+ * Version:           1.1.1
  * Requires at least: 6.2
  * Requires PHP:      8.0
  * Author:            HazmeUnaPagina.cl
@@ -19,7 +19,7 @@
 defined( 'ABSPATH' ) || exit;
 
 // ── Constantes ──────────────────────────────────────────────────────────────
-define( 'HCSAI_VERSION',  '1.1.0' );
+define( 'HCSAI_VERSION',  '1.1.1' );
 define( 'HCSAI_FILE',     __FILE__ );
 define( 'HCSAI_PATH',     plugin_dir_path( __FILE__ ) );
 define( 'HCSAI_URL',      plugin_dir_url( __FILE__ ) );
