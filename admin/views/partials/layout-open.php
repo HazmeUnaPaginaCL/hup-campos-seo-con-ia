@@ -64,7 +64,7 @@ $hcsai_nav_url = static function ( string $section ): string {
                     <li><a class="hup-nav__item<?php echo $hcsai_slug === $hcsai_tab ? ' is-active' : ''; ?>" href="<?php echo esc_url( $hcsai_nav_url( $hcsai_slug ) ); ?>"<?php echo $hcsai_slug === $hcsai_tab ? ' aria-current="page"' : ''; ?>><span class="dashicons <?php echo esc_attr( $hcsai_section[1] ); ?>" aria-hidden="true"></span><?php echo esc_html( $hcsai_section[0] ); ?></a></li>
                     <?php endforeach; ?>
                 </ul>
-                <div class="hup-nav__footer">Hecho por <a href="https://hazmeunapagina.cl" target="_blank" rel="noopener noreferrer">HUP</a></div>
+                <div class="hup-nav__footer">Hecho por <a href="https://hazmeunapagina.cl" target="_blank" rel="noopener noreferrer"><strong>HUP</strong></a> <span aria-hidden="true">💻</span><br>Desde Quilpué para <a href="https://wordpress.org/plugins/search/hup/" target="_blank" rel="noopener noreferrer"><strong>WordPress</strong></a></div>
             </nav>
             <main class="hup-main">
                 <div class="hup-page-head">
