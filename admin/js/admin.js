@@ -36,6 +36,16 @@
     return $cell.length ? $cell : $row.find('td').eq(-2);
   }
 
+  // Estado que devuelve el servidor: 'ai', 'manual' o 'pending'. El de IA ya
+  // está en la fila, con su fecha.
+  function updateStatusCell($row, status) {
+    if (status === 'manual') {
+      generatedCell($row).html('<span class="hup-badge hup-badge--dot">Manual</span>');
+    } else if (status === 'pending') {
+      generatedCell($row).html('<span class="hup-badge hup-badge--warning">Pendiente</span>');
+    }
+  }
+
 
   // ── Provider selector ───────────────────────────────
   $(document).on('change', 'input[name="hcsai_provider"]', function () {
@@ -254,7 +264,7 @@
         $('#modal-seo-native-help').prop('hidden', hasPlugin);
 
         // Barra de estado
-        $('#modal-score-value').text(f.score || 0);
+        $('#modal-score-value').text(r.data.breakdown ? r.data.breakdown.score : (f.score || 0));
         if (hasPlugin) {
           $('#modal-status-native').prop('hidden', true);
           $('#modal-status-plugin').prop('hidden', false);
@@ -316,6 +326,11 @@
       return;
     }
 
+    if (payload['fields[product_description]'] === '' &&
+        !window.confirm('Vas a dejar vacío el texto principal de este contenido. ¿Guardar de todos modos?')) {
+      return;
+    }
+
     $btn.prop('disabled', true).html('<span class="hup-spinner"></span>Guardando...');
 
     ajax('save_fields', payload)
@@ -333,18 +348,21 @@
           var $row = $('tr[data-post-id="' + id + '"]').first();
           if ($row.length) {
             updateScoreBadge($row, r.data.score);
+            updateStatusCell($row, r.data.status);
           }
         } else {
-          toast(r.data.message, 'error');
+          toast((r.data && r.data.message) || 'No se pudieron guardar los campos', 'error');
         }
       })
+      .fail(function () { toast('Error de red: los campos no se guardaron', 'error'); })
       .always(function () { $btn.prop('disabled', false).text('Guardar campos'); });
   });
 
   function updateCharCounts() {
     var seoTitle = $('#modal-seo-title').val() || '';
     var metaDesc = $('#modal-meta-desc').val() || '';
-    var shortDesc = $('#modal-short-desc').val() || '';
+    // La descripción corta admite HTML: se cuenta solo el texto.
+    var shortDesc = ($('#modal-short-desc').val() || '').replace(/<[^>]*>/g, '');
     $('#modal-seo-title-count').text(seoTitle.length);
     $('#modal-meta-desc-count').text(metaDesc.length);
     $('#modal-short-desc-count').text(shortDesc.length);
@@ -416,13 +434,15 @@
     var done   = 0;
     var manual = 0;
     var ai     = 0;
+    var sinSeo = 0;
+    var fallos = 0;
 
     function restoreBtn() {
       $triggerBtn.prop('disabled', false).html($triggerBtn.data('orig-label') || '<span class="dashicons dashicons-search" aria-hidden="true"></span>Escanear');
     }
 
     function finish() {
-      scanLog('Listo: ' + ai + ' IA · ' + manual + ' manuales · ' + (total - ai - manual) + ' sin SEO.', 'ok');
+      scanLog('Listo: ' + ai + ' IA · ' + manual + ' manuales · ' + sinSeo + ' sin SEO' + (fallos ? ' · ' + fallos + ' con error' : '') + '.', 'ok');
       restoreBtn();
       // Refrescar contadores del dashboard si están en el DOM
       ajax('scan_stats', { post_type: postType }).done(function (rs) {
@@ -485,18 +505,16 @@
             if (r2.success) {
               var score  = r2.data.score || 0;
               var status = r2.data.status || 'manual';
-              if (status === 'ai') { ai++; } else { manual++; }
+              // «Sin SEO» es score 0, igual que en los filtros y el Dashboard.
+              if (score === 0) { sinSeo++; } else if (status === 'ai') { ai++; } else { manual++; }
 
               var $row = $('tr[data-post-id="' + id + '"]').first();
               if ($row.length) {
                 updateScoreBadge($row, score);
-                if (status !== 'ai' && score > 0) {
-                  generatedCell($row).html('<span class="hup-badge hup-badge--dot">Manual</span>');
-                } else if (score === 0) {
-                  generatedCell($row).html('<span class="hup-badge hup-badge--warning">Pendiente</span>');
-                }
+                updateStatusCell($row, status);
               }
             } else {
+              fallos++;
               scanLog('#' + id + ' → ' + ((r2.data && r2.data.message) || 'error'), 'err');
             }
             setTimeout(nextScan, 80);
@@ -504,6 +522,7 @@
           .fail(function (xhr) {
             i++;
             done++;
+            fallos++;
             scanLog('#' + id + ' → Error HTTP ' + xhr.status, 'err');
             setTimeout(nextScan, 300);
           });

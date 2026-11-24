@@ -9,8 +9,10 @@ namespace HUP\CamposSeoIA\Ajax;
 
 use HUP\CamposSeoIA\SEO\Reader;
 use HUP\CamposSeoIA\SEO\Writer;
+use HUP\CamposSeoIA\SEO\FieldMap;
 use HUP\CamposSeoIA\SEO\PluginDetector;
 use HUP\CamposSeoIA\SEO\Scorer;
+use HUP\CamposSeoIA\SEO\Status;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -77,15 +79,23 @@ class FieldsHandler extends BaseHandler {
         // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- el nonce se verifica en verify_request(), que todo handler llama antes de leer entradas; cada valor se sanitiza por elemento más abajo.
         $raw_fields = isset( $_POST['fields'] ) && is_array( $_POST['fields'] ) ? $_POST['fields'] : [];
         $fields     = [];
+        $admitidos  = array_merge(
+            [ 'product_description', 'short_description', 'tags', 'alt_text' ],
+            array_keys( FieldMap::get( 'native' ) )
+        );
 
         foreach ( $raw_fields as $key => $value ) {
             $key = sanitize_key( $key );
+            // Un valor vacío es válido: es como se borra un campo.
+            if ( ! in_array( $key, $admitidos, true ) || ! is_string( $value ) ) {
+                continue;
+            }
             if ( 'tags' === $key ) {
                 // Tags: string separado por comas → array
                 $tags_str = sanitize_text_field( wp_unslash( $value ) );
                 $fields['tags'] = array_filter( array_map( 'trim', explode( ',', $tags_str ) ) );
-            } elseif ( 'product_description' === $key ) {
-                // Descripción del producto: puede contener HTML básico
+            } elseif ( in_array( $key, [ 'product_description', 'short_description' ], true ) ) {
+                // Las descripciones pueden contener HTML básico
                 $fields[ $key ] = wp_kses_post( wp_unslash( $value ) );
             } else {
                 $fields[ $key ] = sanitize_text_field( wp_unslash( $value ) );
@@ -101,7 +111,7 @@ class FieldsHandler extends BaseHandler {
         $write_target = ( 'none' !== $plugin ) ? $plugin : 'native';
 
         try {
-            Writer::write( $post_id, $fields, $write_target, true );
+            Writer::write( $post_id, $fields, $write_target, true, true );
         } catch ( \RuntimeException $e ) {
             wp_send_json_error( [ 'message' => $e->getMessage() ] );
         }
@@ -114,6 +124,7 @@ class FieldsHandler extends BaseHandler {
         wp_send_json_success( [
             'score'     => $breakdown['score'],
             'breakdown' => $breakdown,
+            'status'    => Status::of( $post_id, $breakdown['score'] ),
         ] );
     }
 }

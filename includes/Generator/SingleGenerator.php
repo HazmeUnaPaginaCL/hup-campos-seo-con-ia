@@ -69,6 +69,15 @@ class SingleGenerator {
             return [ 'ok' => false, 'error' => 'Este tipo de contenido no tiene campos que completar.', 'score' => 0, 'tokens' => 0, 'cost' => 0 ];
         }
 
+        // La selección se aplica antes de pedir: lo que no se eligió no se paga.
+        if ( ! empty( $selected_fields ) ) {
+            $fields_wanted = array_values( array_intersect( $fields_wanted, $selected_fields ) );
+
+            if ( empty( $fields_wanted ) ) {
+                return [ 'ok' => false, 'error' => 'Ninguno de los campos elegidos aplica a este contenido.', 'score' => 0, 'tokens' => 0, 'cost' => 0 ];
+            }
+        }
+
         // Sin sobrescribir, a la IA solo se le piden los campos vacíos: el Writer
         // descartaría el resto, y pagar la descripción larga de un producto para
         // luego tirarla era el grueso del costo. Si no falta nada, ni se llama.
@@ -118,11 +127,6 @@ class SingleGenerator {
             // descartan aquí para que prompt, schema, score y escritura digan
             // todos lo mismo.
             $fields = array_intersect_key( $fields, array_flip( $fields_wanted ) );
-
-            // Filtrar campos seleccionados
-            if ( ! empty( $selected_fields ) ) {
-                $fields = array_intersect_key( $fields, array_flip( $selected_fields ) );
-            }
 
             // Info adicional para el Writer
             $has_thumbnail = (bool) get_post_thumbnail_id( $post_id );

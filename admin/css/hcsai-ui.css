@@ -61,10 +61,14 @@
 .hup-app .hup-seo-score--link:focus-visible { border-color: currentColor; outline: none; }
 
 /* ── Modal de campos ───────────────────────────────────────────────────── */
+/* El cuerpo del modal es un flex en columna: sin esto, las secciones se encogen
+   y ocultan sus campos en vez de desplazarse. */
+.hup-app .hup-modal__scroll > * { flex-shrink: 0; }
 .hup-app .hup-seo-modal-section { margin-bottom: 20px; overflow: hidden; border: 1px solid var(--hup-border); border-radius: var(--hup-radius-md); background: var(--hup-surface); }
 .hup-app .hup-seo-modal-section-header { display: flex; align-items: center; gap: 10px; padding: 12px 18px; border-bottom: 1px solid var(--hup-border); background: var(--hup-surface-2); }
 .hup-app .hup-seo-modal-section-header h4 { margin: 0; font-size: 14px; font-weight: 600; }
 .hup-app .hup-seo-modal-section .hup-field { margin: 16px 18px 0; }
+.hup-app .hup-seo-modal-section > .hup-hint { max-width: none; margin: 14px 18px 0; }
 .hup-app .hup-seo-modal-section .hup-field:last-child { margin-bottom: 18px; }
 .hup-app .hup-seo-modal-section .hup-field > .hup-input,
 .hup-app .hup-seo-modal-section .hup-field > .hup-seo-char-count,

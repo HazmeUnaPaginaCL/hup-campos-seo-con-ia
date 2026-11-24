@@ -31,51 +31,14 @@ $stats       = \HUP\CamposSeoIA\Logger::stats();
 $last_logs   = \HUP\CamposSeoIA\Logger::get_recent( 8 );
 $usd_to_clp  = \HUP\CamposSeoIA\Settings::usd_to_clp();
 
-// Contar productos/posts sin SEO
-$products_total   = 0;
-$products_no_seo  = 0;
-$posts_no_seo     = 0;
-
+// Contar productos/posts con y sin SEO, con el mismo criterio que los listados.
 if ( $has_woo ) {
-    // Detectar meta key principal del plugin SEO activo
-    $seo_meta_key = \HUP\CamposSeoIA\SEO\FieldMap::key( $seo_plugin, 'seo_title' );
-    // Con SEO: tiene _hcsai_score>0 (escaneado/generado) O tiene el meta key del plugin lleno
-    $with_seo_query_args = [
-        'post_type'      => 'product',
-        'post_status'    => [ 'publish', 'draft' ],
-        'posts_per_page' => 1,
-        'fields'         => 'ids',
-        'meta_query'     => [ 'relation' => 'OR',
-            [ 'key' => '_hcsai_score', 'value' => '0', 'compare' => '>', 'type' => 'NUMERIC' ],
-        ],
-    ];
-    if ( ! empty( $seo_meta_key ) ) {
-        $with_seo_query_args['meta_query'][] = [ 'key' => $seo_meta_key, 'value' => '', 'compare' => '!=' ];
-    }
-    $products_with_seo = (int) ( new WP_Query( $with_seo_query_args ) )->found_posts;
-    $products_total  = (int) ( new WP_Query( [
-        'post_type'      => 'product',
-        'post_status'    => [ 'publish', 'draft' ],
-        'posts_per_page' => 1,
-        'fields'         => 'ids',
-    ] ) )->found_posts;
-    $products_no_seo = max( 0, $products_total - $products_with_seo );
+    \HUP\CamposSeoIA\SEO\Status::fill_missing( 'product' );
+    $products = \HUP\CamposSeoIA\SEO\Status::counts( 'product' );
 }
 
-$posts_total    = (int) ( new WP_Query( [
-    'post_type'      => 'post',
-    'post_status'    => [ 'publish', 'draft' ],
-    'posts_per_page' => 1,
-    'fields'         => 'ids',
-] ) )->found_posts;
-$posts_with_seo = (int) ( new WP_Query( [
-    'post_type'      => 'post',
-    'post_status'    => [ 'publish', 'draft' ],
-    'posts_per_page' => 1,
-    'fields'         => 'ids',
-    'meta_query'     => [ [ 'key' => '_hcsai_score', 'value' => '0', 'compare' => '>', 'type' => 'NUMERIC' ] ],
-] ) )->found_posts;
-$posts_no_seo = $posts_total - $posts_with_seo;
+\HUP\CamposSeoIA\SEO\Status::fill_missing( 'post' );
+$posts = \HUP\CamposSeoIA\SEO\Status::counts( 'post' );
 
 require __DIR__ . '/partials/layout-open.php';
 ?>
@@ -85,17 +48,19 @@ require __DIR__ . '/partials/layout-open.php';
     <?php if ( $has_woo ) : ?>
     <a href="<?php echo esc_url( admin_url( 'admin.php?page=hcsai&tab=productos&seo_status=done' ) ); ?>" class="hup-stat" title="Ver productos con SEO">
         <div class="hup-stat__label">Productos con SEO</div>
-        <div class="hup-stat__value"><?php echo esc_html( $products_with_seo ); ?> / <?php echo esc_html( $products_total ); ?></div>
+        <div class="hup-stat__value"><?php echo esc_html( $products['with_seo'] ); ?> / <?php echo esc_html( $products['total'] ); ?></div>
     </a>
     <a href="<?php echo esc_url( admin_url( 'admin.php?page=hcsai&tab=productos&seo_status=pending' ) ); ?>" class="hup-stat" title="Ver productos sin SEO">
         <div class="hup-stat__label">Productos sin SEO</div>
-        <div class="hup-stat__value"><?php echo esc_html( $products_no_seo ); ?></div>
+        <div class="hup-stat__value"><?php echo esc_html( $products['without_seo'] ); ?></div>
+        <?php if ( $products['unscanned'] > 0 ) : ?><p class="hup-hint">Incluye <?php echo esc_html( $products['unscanned'] ); ?> sin escanear</p><?php endif; ?>
     </a>
     <?php endif; ?>
-    <div class="hup-stat">
+    <a href="<?php echo esc_url( admin_url( 'admin.php?page=hcsai&tab=blog&seo_status=pending' ) ); ?>" class="hup-stat" title="Ver posts sin SEO">
         <div class="hup-stat__label">Posts sin SEO</div>
-        <div class="hup-stat__value"><?php echo esc_html( $posts_no_seo ); ?></div>
-    </div>
+        <div class="hup-stat__value"><?php echo esc_html( $posts['without_seo'] ); ?></div>
+        <?php if ( $posts['unscanned'] > 0 ) : ?><p class="hup-hint">Incluye <?php echo esc_html( $posts['unscanned'] ); ?> sin escanear</p><?php endif; ?>
+    </a>
     <div class="hup-stat">
         <div class="hup-stat__label">Gasto mensual (USD)</div>
         <div class="hup-stat__value">$<?php echo esc_html( number_format( $monthly, 4, ',', '.' ) ); ?></div>

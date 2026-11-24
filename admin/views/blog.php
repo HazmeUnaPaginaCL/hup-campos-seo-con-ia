@@ -38,10 +38,13 @@ if ( ! empty( $search ) ) {
 if ( $filter_cat > 0 ) {
     $args['cat'] = $filter_cat;
 }
-if ( 'pending' === $filter_seo ) {
-    $args['meta_query'] = [ [ 'key' => '_hcsai_generated', 'compare' => 'NOT EXISTS' ] ];
-} elseif ( 'done' === $filter_seo ) {
-    $args['meta_query'] = [ [ 'key' => '_hcsai_generated', 'compare' => 'EXISTS' ] ];
+
+// Los filtros leen el score guardado: se calcula antes el que falte.
+\HUP\CamposSeoIA\SEO\Status::fill_missing( 'post' );
+
+$status_query = \HUP\CamposSeoIA\SEO\Status::meta_query( $filter_seo );
+if ( ! empty( $status_query ) ) {
+    $args['meta_query'] = $status_query;
 }
 
 $query      = new WP_Query( $args );
@@ -151,9 +154,11 @@ do_action( 'hcsai_admin_after_table', 'post' );
                 <?php endforeach; ?>
             </select>
             <select name="seo_status" class="hup-select">
-                <option value="">Todos</option>
-                <option value="pending" <?php selected( $filter_seo, 'pending' ); ?>>Sin SEO</option>
+                <option value="">Estado SEO</option>
+                <option value="pending" <?php selected( $filter_seo, 'pending' ); ?>>Sin SEO (0%)</option>
                 <option value="done" <?php selected( $filter_seo, 'done' ); ?>>Con SEO</option>
+                <option value="manual" <?php selected( $filter_seo, 'manual' ); ?>>Manual</option>
+                <option value="ai" <?php selected( $filter_seo, 'ai' ); ?>>Generado con IA</option>
             </select>
             <button type="submit" class="hup-btn hup-btn--secondary">Filtrar</button>
         </form>
@@ -171,7 +176,7 @@ do_action( 'hcsai_admin_after_table', 'post' );
             </thead>
             <tbody>
                 <?php while ( $query->have_posts() ) : $query->the_post(); global $post;
-                    $score     = (int) get_post_meta( $post->ID, '_hcsai_score', true );
+                    $score     = \HUP\CamposSeoIA\SEO\Status::score( $post->ID );
                     $generated = get_post_meta( $post->ID, '_hcsai_generated', true );
                     $cats      = get_the_category( $post->ID );
                     $cat_names = ! empty( $cats ) ? implode( ', ', wp_list_pluck( $cats, 'name' ) ) : '';
@@ -187,7 +192,7 @@ do_action( 'hcsai_admin_after_table', 'post' );
                             <?php echo esc_html( $score ); ?>%
                         </button>
                     </td>
-                    <td data-hcsai-col="generated"><?php if ( $generated ) : ?><span class="hup-badge hup-badge--success hup-badge--dot" title="Generado el <?php echo esc_attr( $generated ); ?>">IA</span><?php else : ?><span class="hup-badge hup-badge--warning">Pendiente</span><?php endif; ?></td>
+                    <td data-hcsai-col="generated"><?php if ( $generated ) : ?><span class="hup-badge hup-badge--success hup-badge--dot" title="Generado el <?php echo esc_attr( $generated ); ?>">IA</span><?php elseif ( $score > 0 ) : ?><span class="hup-badge hup-badge--dot" title="Tiene contenido SEO escrito a mano">Manual</span><?php else : ?><span class="hup-badge hup-badge--warning">Pendiente</span><?php endif; ?></td>
                     <td>
                         <button type="button" class="hup-btn hup-btn--sm hup-btn--secondary hup-seo-gen-single" data-id="<?php echo esc_attr( $post->ID ); ?>">Completar</button>
                         <button type="button" class="hup-btn hup-btn--sm hup-btn--secondary hup-seo-edit-seo" data-id="<?php echo esc_attr( $post->ID ); ?>">Editar</button>

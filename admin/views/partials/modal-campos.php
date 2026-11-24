@@ -70,8 +70,8 @@ $hcsai_textos = ( 'product' === $hcsai_modal_tipo )
                 </div>
                 <div class="hup-field" data-hcsai-field="short_description">
                     <label class="hup-label" for="modal-short-desc"><?php echo esc_html( $hcsai_textos['corta_label'] ); ?></label>
-                    <textarea id="modal-short-desc" class="hup-input" rows="2" maxlength="300" placeholder="<?php echo esc_attr( $hcsai_textos['corta_ph'] ); ?>"></textarea>
-                    <span class="hup-seo-char-count"><span id="modal-short-desc-count">0</span>/300</span>
+                    <textarea id="modal-short-desc" class="hup-input" rows="3" placeholder="<?php echo esc_attr( $hcsai_textos['corta_ph'] ); ?>"></textarea>
+                    <span class="hup-seo-char-count"><span id="modal-short-desc-count">0</span>/300 recomendados</span>
                 </div>
                 <div class="hup-field" data-hcsai-field="tags">
                     <label class="hup-label" for="modal-tags"><?php echo esc_html( $hcsai_textos['etiquetas_label'] ); ?></label>

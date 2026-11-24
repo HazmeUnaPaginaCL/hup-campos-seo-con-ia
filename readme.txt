@@ -3,8 +3,8 @@ Contributors: hazmeunapagina
 Tags: seo, ai, openai, gemini, woocommerce
 Requires at least: 6.2
 Tested up to: 7.1
-Requires PHP: 8.0
-Stable tag: 1.1.1
+Requires PHP: 8.2
+Stable tag: 1.1.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -133,6 +133,18 @@ Uninstalling removes the configuration options, the log table, the temporary cac
 
 == Changelog ==
 
+= 1.1.2 =
+* Fixed: the edit modal no longer hides its fields on most screens.
+* Fixed: editing only the meta description no longer replaces the short description or excerpt.
+* Fixed: clearing a field or removing a tag in the edit modal is now saved.
+* Fixed: content edited by hand is no longer marked as generated with AI.
+* Fixed: editing the short description keeps its basic HTML.
+* Fixed: the Dashboard, the Productos and Blog filters and the scan summary now use the same "Sin SEO" criterion.
+* Fixed: saving without connection now shows an error.
+* Improved: choosing fields before generating only requests those fields from the AI.
+* Improved: card footer buttons wrap on small screens.
+* Changed: requires PHP 8.2.
+
 = 1.1.1 =
 * Fixed the "días" unit in Configuración → Log de generaciones, which appeared below the field instead of next to it.
 * Prompt and business profile text areas now use the full width of their card.
@@ -180,6 +192,9 @@ Uninstalling removes the configuration options, the log table, the temporary cac
 * API keys encrypted with AES-256-CBC.
 
 == Upgrade Notice ==
+
+= 1.1.2 =
+Fixes manual editing: the short description is no longer replaced, and cleared fields and tags are saved. Requires PHP 8.2.
 
 = 1.1.1 =
 Small layout fixes in Configuración. No settings change.

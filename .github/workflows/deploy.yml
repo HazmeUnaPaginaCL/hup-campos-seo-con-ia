@@ -13,7 +13,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
+
+      # Detiene la publicación si la etiqueta, el plugin y el readme no dicen lo mismo.
+      - name: Check version
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          PLUGIN=$(sed -n 's/^ \* Version:[[:space:]]*//p' hup-campos-seo-con-ia.php | tr -d '\r ')
+          STABLE=$(sed -n 's/^Stable tag:[[:space:]]*//p' readme.txt | tr -d '\r ')
+          echo "Release: $VERSION | Plugin: $PLUGIN | Stable tag: $STABLE"
+          if [ "$VERSION" != "$PLUGIN" ] || [ "$VERSION" != "$STABLE" ]; then
+            echo "::error::La versión de la Release, del plugin y del readme no coinciden."
+            exit 1
+          fi
 
       - name: WordPress Plugin Deploy
         id: deploy
@@ -26,11 +38,6 @@ jobs:
           SLUG: hup-campos-seo-con-ia
 
       - name: Upload release asset
-        uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ${{ steps.deploy.outputs.zip-path }}
-          asset_name: hup-campos-seo-con-ia.zip
-          asset_content_type: application/zip
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$GITHUB_REF_NAME" "${{ steps.deploy.outputs.zip-path }}" --clobber

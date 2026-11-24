@@ -10,8 +10,8 @@
 namespace HUP\CamposSeoIA\Ajax;
 
 use HUP\CamposSeoIA\SEO\Scorer;
-use HUP\CamposSeoIA\SEO\Reader;
 use HUP\CamposSeoIA\SEO\PluginDetector;
+use HUP\CamposSeoIA\SEO\Status;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -49,17 +49,15 @@ class ScanHandler extends BaseHandler {
         // Calcular score leyendo campos reales (Yoast/RankMath/AIOSEO/native)
         $score = Scorer::calculate( $post_id, $write_target );
 
-        // Determinar estado: si ya fue generado con IA mantener esa fecha,
-        // si no, marcar como escaneado con prefijo 'scan:'
-        $existing_generated = get_post_meta( $post_id, '_hcsai_generated', true );
-        $status = $existing_generated ? 'ai' : 'manual';
+        // Determinar estado: IA, manual o pendiente.
+        $status = Status::of( $post_id, $score );
 
         // Guardar score calculado
         update_post_meta( $post_id, '_hcsai_score', $score );
 
         // Si tiene contenido real pero nunca fue generado con IA,
         // marcar como escaneado para que no aparezca como "Pendiente"
-        if ( $score > 0 && ! $existing_generated ) {
+        if ( 'manual' === $status ) {
             update_post_meta( $post_id, '_hcsai_scanned', current_time( 'mysql', true ) );
         }
 
@@ -80,30 +78,8 @@ class ScanHandler extends BaseHandler {
         $post_type_raw = $this->input( 'post_type', 'product' );
         $post_type     = in_array( $post_type_raw, [ 'product', 'post', 'page' ], true ) ? $post_type_raw : 'product';
 
-        global $wpdb;
+        wp_send_json_success( array_merge( [ 'post_type' => $post_type ], Status::counts( $post_type ) ) );
 
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Conteo agregado sobre posts/postmeta; WP_Query cargaría los IDs en memoria y el valor cambia en cada escaneo, no procede cachear.
-        $total = (int) $wpdb->get_var( $wpdb->prepare(
-            "SELECT COUNT(*) FROM {$wpdb->posts}
-             WHERE post_type = %s AND post_status IN ('publish','draft')",
-            $post_type
-        ) );
-
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Conteo agregado sobre posts/postmeta; WP_Query cargaría los IDs en memoria y el valor cambia en cada escaneo, no procede cachear.
-        $with_seo = (int) $wpdb->get_var( $wpdb->prepare(
-            "SELECT COUNT(*) FROM {$wpdb->posts} p
-             INNER JOIN {$wpdb->postmeta} pm ON pm.post_id = p.ID
-                AND pm.meta_key = '_hcsai_score' AND CAST(pm.meta_value AS UNSIGNED) > 0
-             WHERE p.post_type = %s AND p.post_status IN ('publish','draft')",
-            $post_type
-        ) );
-
-        wp_send_json_success( [
-            'post_type'   => $post_type,
-            'total'       => $total,
-            'with_seo'    => $with_seo,
-            'without_seo' => max( 0, $total - $with_seo ),
-        ] );
     }
 
     /**

@@ -50,52 +50,15 @@ if ( ! empty( $search ) ) {
 if ( $filter_cat > 0 ) {
     $args['tax_query'] = [ [ 'taxonomy' => 'product_cat', 'field' => 'term_id', 'terms' => $filter_cat ] ];
 }
-// Meta key del plugin SEO activo para detectar "con SEO"
-$seo_title_key = \HUP\CamposSeoIA\SEO\FieldMap::key( $seo_plugin, 'seo_title' );
 // Todos los meta keys del plugin SEO activo (para columna de campos llenos)
 $seo_field_map = \HUP\CamposSeoIA\SEO\FieldMap::get( $seo_plugin );
 
-// Clausulas de meta_query según filtro
-if ( 'pending' === $filter_seo ) {
-    // Sin SEO: ni score guardado ni campo del plugin SEO lleno
-    $mq = [ 'relation' => 'AND',
-        [ 'key' => '_hcsai_score', 'compare' => 'NOT EXISTS' ],
-    ];
-    if ( ! empty( $seo_title_key ) ) {
-        $mq[] = [ 'relation' => 'OR',
-            [ 'key' => $seo_title_key, 'compare' => 'NOT EXISTS' ],
-            [ 'key' => $seo_title_key, 'value' => '', 'compare' => '=' ],
-        ];
-    }
-    $args['meta_query'] = $mq;
-} elseif ( 'done' === $filter_seo ) {
-    // Con SEO: score guardado > 0 O campo del plugin SEO lleno
-    $mq = [ 'relation' => 'OR',
-        [ 'key' => '_hcsai_score', 'value' => '0', 'compare' => '>', 'type' => 'NUMERIC' ],
-    ];
-    if ( ! empty( $seo_title_key ) ) {
-        $mq[] = [ 'key' => $seo_title_key, 'value' => '', 'compare' => '!=' ];
-    }
-    $args['meta_query'] = $mq;
-} elseif ( 'manual' === $filter_seo ) {
-    // Manual: tiene SEO (score>0 o campo del plugin) pero NO lo generó la IA.
-    //
-    // La condición "no lo generó la IA" se expresa con NOT EXISTS dentro de la
-    // misma meta_query. Antes se resolvía cargando TODOS los IDs con
-    // _hcsai_generated y pasándolos a post__not_in: en un catálogo grande eso
-    // construía un NOT IN (...) con miles de IDs en cada carga de la página.
-    $tiene_seo = [ 'relation' => 'OR',
-        [ 'key' => '_hcsai_score', 'value' => '0', 'compare' => '>', 'type' => 'NUMERIC' ],
-    ];
-    if ( ! empty( $seo_title_key ) ) {
-        $tiene_seo[] = [ 'key' => $seo_title_key, 'value' => '', 'compare' => '!=' ];
-    }
-    $args['meta_query'] = [ 'relation' => 'AND',
-        [ 'key' => '_hcsai_generated', 'compare' => 'NOT EXISTS' ],
-        $tiene_seo,
-    ];
-} elseif ( 'ai' === $filter_seo ) {
-    $args['meta_query'] = [ [ 'key' => '_hcsai_generated', 'compare' => 'EXISTS' ] ];
+// Los filtros leen el score guardado: se calcula antes el que falte.
+\HUP\CamposSeoIA\SEO\Status::fill_missing( 'product' );
+
+$status_query = \HUP\CamposSeoIA\SEO\Status::meta_query( $filter_seo );
+if ( ! empty( $status_query ) ) {
+    $args['meta_query'] = $status_query;
 }
 
 // Filtro por nivel de score
@@ -230,9 +193,7 @@ if ( ! function_exists( 'hcsai_sort_arrow' ) ) {
             </thead>
             <tbody>
                 <?php while ( $query->have_posts() ) : $query->the_post(); global $post;
-                    // Score en vivo: si ya fue escaneado usa el guardado, si no calcula ahora
-                    $saved_score = get_post_meta( $post->ID, '_hcsai_score', true );
-                    $score       = ( '' !== $saved_score ) ? (int) $saved_score : \HUP\CamposSeoIA\SEO\Scorer::calculate( $post->ID );
+                    $score       = \HUP\CamposSeoIA\SEO\Status::score( $post->ID );
                     $generated   = get_post_meta( $post->ID, '_hcsai_generated', true );
                     $scanned     = get_post_meta( $post->ID, '_hcsai_scanned', true );
                     $cats        = wp_get_post_terms( $post->ID, 'product_cat', [ 'fields' => 'names' ] );

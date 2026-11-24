@@ -243,7 +243,7 @@ class Scorer {
         $earned  = 0;
         $nota    = 'Vacía.';
         if ( ! empty( trim( $excerpt ) ) ) {
-            $len = mb_strlen( $excerpt );
+            $len = mb_strlen( wp_strip_all_tags( $excerpt ) );
             if ( $len >= 50 && $len <= 300 ) {
                 $earned = $peso;
                 $nota   = '';
