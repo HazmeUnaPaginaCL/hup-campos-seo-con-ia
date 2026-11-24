@@ -1,4 +1,4 @@
-/* HUP Admin UI 1.3.0 — componentes.
+/* HUP Admin UI 1.3.1 — componentes.
    Requiere tokens.css (cárguelo antes, como dependencia).
    Todo vive dentro de .hup-app; prefijo .hup- para no chocar con WP ni otros plugins.
    NO editar por plugin: si falta algo, agréguelo aquí y suba la versión (ver CHANGELOG.md). */
@@ -62,7 +62,7 @@
 .hup-card__title { margin: 0; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
 .hup-card__desc { margin: 2px 0 0; font-size: 13px; color: var(--hup-muted); }
 .hup-card__body { padding: 20px 24px; display: flex; flex-direction: column; gap: 20px; }
-.hup-card__foot { display: flex; align-items: center; gap: 12px; padding: 14px 24px; border-top: 1px solid #f0f1f5; }
+.hup-card__foot { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px 24px; border-top: 1px solid #f0f1f5; }
 .hup-card--danger .hup-card__title { color: var(--hup-danger); }
 
 /* Field rows */
