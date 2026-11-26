@@ -44,6 +44,27 @@ class FieldMap {
             'og_title'         => '_aioseo_og_title',
             'og_description'   => '_aioseo_og_description',
         ],
+        // SEOPress guarda las palabras clave separadas por coma; una sola también vale.
+        'seopress' => [
+            'seo_title'        => '_seopress_titles_title',
+            'meta_description' => '_seopress_titles_desc',
+            'focus_keyword'    => '_seopress_analysis_target_kw',
+            'og_title'         => '_seopress_social_fb_title',
+            'og_description'   => '_seopress_social_fb_desc',
+        ],
+        // The SEO Framework no tiene palabra clave en su versión gratuita.
+        'tsf' => [
+            'seo_title'        => '_genesis_title',
+            'meta_description' => '_genesis_description',
+            'og_title'         => '_open_graph_title',
+            'og_description'   => '_open_graph_description',
+        ],
+        // Slim SEO guarda título y descripción en un solo meta `slim_seo` (array).
+        // «clave|subclave» se lee y escribe con value() / update().
+        'slimseo' => [
+            'seo_title'        => 'slim_seo|title',
+            'meta_description' => 'slim_seo|description',
+        ],
         'native' => [
             'seo_title'        => '_hcsai_seo_title',
             'meta_description' => '_hcsai_meta_description',
@@ -76,6 +97,59 @@ class FieldMap {
     public static function key( string $plugin, string $field ): string {
         $map = self::get( $plugin );
         return $map[ $field ] ?? '';
+    }
+
+    /**
+     * Lee el valor de una meta key del mapa (admite «clave|subclave»).
+     *
+     * @param int    $post_id  ID del post.
+     * @param string $meta_key Meta key, o «clave|subclave» para un valor dentro de un array.
+     * @return mixed Lo guardado; '' si no existe.
+     */
+    public static function value( int $post_id, string $meta_key ) {
+        if ( false === strpos( $meta_key, '|' ) ) {
+            return get_post_meta( $post_id, $meta_key, true );
+        }
+
+        [ $key, $sub ] = explode( '|', $meta_key, 2 );
+        $data          = get_post_meta( $post_id, $key, true );
+
+        return ( is_array( $data ) && isset( $data[ $sub ] ) && is_scalar( $data[ $sub ] ) ) ? (string) $data[ $sub ] : '';
+    }
+
+    /**
+     * Guarda o borra (valor vacío) una meta key del mapa (admite «clave|subclave»).
+     * En un array solo cambia esa subclave y conserva las demás del otro plugin.
+     *
+     * @param int    $post_id  ID del post.
+     * @param string $meta_key Meta key o «clave|subclave».
+     * @param string $value    Valor ya saneado; '' borra.
+     */
+    public static function update( int $post_id, string $meta_key, string $value ): void {
+        if ( false === strpos( $meta_key, '|' ) ) {
+            if ( '' === $value ) {
+                delete_post_meta( $post_id, $meta_key );
+            } else {
+                update_post_meta( $post_id, $meta_key, $value );
+            }
+            return;
+        }
+
+        [ $key, $sub ] = explode( '|', $meta_key, 2 );
+        $data          = get_post_meta( $post_id, $key, true );
+        $data          = is_array( $data ) ? $data : [];
+
+        if ( '' === $value ) {
+            unset( $data[ $sub ] );
+        } else {
+            $data[ $sub ] = $value;
+        }
+
+        if ( empty( $data ) ) {
+            delete_post_meta( $post_id, $key );
+        } else {
+            update_post_meta( $post_id, $key, $data );
+        }
     }
 
 }

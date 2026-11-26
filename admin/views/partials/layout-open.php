@@ -33,6 +33,9 @@ foreach ( (array) ( $submenu['hcsai'] ?? [] ) as $hcsai_submenu_item ) {
     }
 }
 $hcsai_sections = (array) apply_filters( 'hcsai_admin_sections', $hcsai_sections );
+// Siempre la última, tras un separador, también después de las secciones del Pro.
+unset( $hcsai_sections['otros'] );
+$hcsai_sections['otros'] = [ 'Otros plugins HUP', 'dashicons-admin-plugins', 'Más plugins gratuitos de HUP para tu sitio WordPress.' ];
 if ( ! isset( $hcsai_sections[ $hcsai_tab ] ) ) {
     $hcsai_tab = 'dashboard';
 }
@@ -41,7 +44,7 @@ $hcsai_nav_url = static function ( string $section ): string {
     if ( 'paginas' === $section ) {
         return admin_url( 'admin.php?page=hcsai-paginas' );
     }
-    return add_query_arg( [ 'page' => 'hcsai', 'tab' => $section ], admin_url( 'admin.php' ) );
+    return \HUP\CamposSeoIA\Admin\Menu::url( [ 'tab' => $section ] );
 };
 ?>
 <div class="wrap">
@@ -61,6 +64,7 @@ $hcsai_nav_url = static function ( string $section ): string {
             <nav class="hup-nav" aria-label="Secciones">
                 <ul class="hup-nav__list">
                     <?php foreach ( $hcsai_sections as $hcsai_slug => $hcsai_section ) : ?>
+                    <?php if ( 'otros' === $hcsai_slug ) : ?><li class="hup-nav__sep" role="separator"></li><?php endif; ?>
                     <li><a class="hup-nav__item<?php echo $hcsai_slug === $hcsai_tab ? ' is-active' : ''; ?>" href="<?php echo esc_url( $hcsai_nav_url( $hcsai_slug ) ); ?>"<?php echo $hcsai_slug === $hcsai_tab ? ' aria-current="page"' : ''; ?>><span class="dashicons <?php echo esc_attr( $hcsai_section[1] ); ?>" aria-hidden="true"></span><?php echo esc_html( $hcsai_section[0] ); ?></a></li>
                     <?php endforeach; ?>
                 </ul>

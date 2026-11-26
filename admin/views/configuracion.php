@@ -111,7 +111,7 @@ if ( ! isset( $hcsai_panels[ $hcsai_panel ] ) ) {
 ?>
 <div class="hup-tabs" aria-label="Opciones de configuración">
     <?php foreach ( $hcsai_panels as $tab_id => $tab_label ) : ?>
-    <a href="<?php echo esc_url( add_query_arg( [ 'page' => 'hcsai', 'tab' => 'configuracion', 'panel' => sanitize_key( $tab_id ) ], admin_url( 'admin.php' ) ) ); ?>" class="<?php echo $hcsai_panel === $tab_id ? 'is-active' : ''; ?>"<?php echo $hcsai_panel === $tab_id ? ' aria-current="page"' : ''; ?>><?php echo esc_html( $tab_label ); ?></a>
+    <a href="<?php echo esc_url( \HUP\CamposSeoIA\Admin\Menu::url( [ 'tab' => 'configuracion', 'panel' => sanitize_key( $tab_id ) ] ) ); ?>" class="<?php echo $hcsai_panel === $tab_id ? 'is-active' : ''; ?>"<?php echo $hcsai_panel === $tab_id ? ' aria-current="page"' : ''; ?>><?php echo esc_html( $tab_label ); ?></a>
     <?php endforeach; ?>
 </div>
 
@@ -186,7 +186,7 @@ if ( ! isset( $hcsai_panels[ $hcsai_panel ] ) ) {
                                 <li>Haz clic en <strong>"Crear clave de API"</strong></li>
                                 <li>Selecciona un proyecto existente o crea uno nuevo</li>
                                 <li>Copia la clave generada y pégala en el campo de arriba</li>
-                                <li>Haz clic en <strong>"Verificar conexión"</strong> para confirmar que funciona</li>
+                                <li>Haz clic en <strong>«Probar conexión»</strong> para confirmar que funciona</li>
                             </ol>
                             <p><strong>Nota:</strong> La key puede tardar 1-2 minutos en activarse después de crearla. Si ves error "API key expired" o "not valid", espera un momento y vuelve a intentar.</p>
                             <p>Plan gratuito: 15 solicitudes por minuto, suficiente para uso normal del plugin.</p>
@@ -200,7 +200,7 @@ if ( ! isset( $hcsai_panels[ $hcsai_panel ] ) ) {
                                 <li>Haz clic en <strong>"Create new secret key"</strong></li>
                                 <li>Dale un nombre descriptivo (ej: "HUP SEO Plugin")</li>
                                 <li>Copia la clave <strong>inmediatamente</strong> (no se vuelve a mostrar)</li>
-                                <li>Pégala en el campo de arriba y verifica la conexión</li>
+                                <li>Pégala en el campo de arriba y pulsa <strong>«Probar conexión»</strong></li>
                             </ol>
                             <p><strong>Importante:</strong> OpenAI requiere créditos prepagados. Ve a <a href="https://platform.openai.com/settings/organization/billing" target="_blank" rel="noopener">Billing</a> para agregar fondos (mínimo $5 USD).</p>
                             <p>El modelo GPT-6 Luna es el más económico (~$0.50 USD por millón de tokens de salida).</p>
@@ -230,9 +230,14 @@ if ( ! isset( $hcsai_panels[ $hcsai_panel ] ) ) {
         <div class="hup-card">
             <div class="hup-card__head"><h3 class="hup-card__title">Datos enviados a servicios externos</h3></div>
             <div class="hup-card__body">
+                <p>Solo cuando tú ejecutas una acción, el plugin envía el contenido elegido al proveedor de IA que configures (OpenAI o Google Gemini). No envía datos de clientes, pedidos ni usuarios.</p>
+
+                <details class="hup-accordion">
+                <summary>Ver qué se envía, cuándo y a qué servicios</summary>
+                <div>
                 <p>Este plugin necesita un servicio externo de inteligencia artificial para generar contenido. Sin una API key configurada, las funciones de generación no operan.</p>
 
-                <p><strong>Cuándo se envían datos:</strong> solo cuando ejecutas manualmente una acción del plugin (completar los campos de un contenido, crear un post, mejorar un post o verificar la conexión). No se envía nada de forma automática, programada ni desde el frontend del sitio.</p>
+                <p><strong>Cuándo se envían datos:</strong> solo cuando ejecutas manualmente una acción del plugin (completar los campos de un contenido, crear un post, mejorar un post o probar la conexión). No se envía nada de forma automática, programada ni desde el frontend del sitio.</p>
 
                 <p><strong>Qué se envía:</strong> del contenido seleccionado, su título, el texto de su contenido o descripción (hasta 2.000 caracteres al completar campos, y hasta 12.000 al mejorar un post), categoría y —en productos WooCommerce— SKU, precio y atributos. Además, el perfil del negocio que defines en la pestaña "Sitio y Prompts" (tipo de sitio, rubro, descripción, público, diferenciadores, alcance, zona y modalidad), el país y el idioma. No se envían datos personales de usuarios, credenciales de WordPress ni datos de clientes o pedidos.</p>
 
@@ -253,6 +258,8 @@ if ( ! isset( $hcsai_panels[ $hcsai_panel ] ) ) {
                 </ul>
 
                 <p class="hup-hint">Las API keys las proporcionas tú y se registran en tu propia cuenta con cada proveedor: no vienen embebidas en el plugin. Se guardan encriptadas con AES-256-CBC en tu base de datos. El plugin no envía datos a servidores propios ni a terceros distintos del proveedor que selecciones, y el costo del consumo de la API corre por tu cuenta.</p>
+                </div>
+                </details>
             </div>
         </div>
 

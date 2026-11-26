@@ -296,14 +296,27 @@
     }).fail(function () { toast('Error de red al cargar los campos', 'error'); });
   });
 
-  $(document).on('click', '.hup-seo-modal-close', function () {
-    $('#hup-seo-seo-modal').prop('hidden', true);
+  // Hay cambios sin guardar si algún campo habilitado difiere de cómo se abrió.
+  // Mientras cargan los datos (Guardar deshabilitado) no cuenta.
+  function modalDirty() {
+    if ($('#modal-save-fields').prop('disabled') || $.isEmptyObject(modalOriginal)) return false;
+    var dirty = false;
+    $.each(MODAL_FIELDS, function (key, sel) {
+      var $el = $(sel);
+      if (!$el.prop('disabled') && ($el.val() || '') !== modalOriginal[key]) { dirty = true; return false; }
+    });
+    return dirty;
+  }
+
+  // hup-ui cierra el modal con la X, «Cancelar», Escape o un clic en el fondo, y
+  // antes avisa con `hup:modal-close`: aquí se pregunta si hay cambios sin guardar.
+  $(document).on('hup:modal-close', '#hup-seo-seo-modal', function (event) {
+    if (modalDirty() && !window.confirm('Tienes cambios sin guardar. ¿Cerrar sin guardarlos?')) {
+      event.preventDefault();
+      return;
+    }
     // El botón vuelve a su etiqueta original: tras guardar pasa a "Cerrar".
     $('#modal-cancel-fields').text('Cancelar');
-  });
-
-  $(document).on('keydown', function (event) {
-    if (event.key === 'Escape') $('#hup-seo-seo-modal').prop('hidden', true);
   });
 
   $(document).on('click', '#modal-save-fields', function () {
@@ -390,7 +403,8 @@
         '<div id="' + wrapId + '" class="hcsai-scan-progress hup-notice">' +
         '<div class="hcsai-scan-progress__body">' +
         '<div class="hup-inline"><strong>Escaneando contenido</strong>' +
-        '<span><span class="sc-curr">0</span> / <span class="sc-tot">?</span> (<span class="sc-pct">0</span>%)</span></div>' +
+        '<span><span class="sc-curr">0</span> / <span class="sc-tot">?</span> (<span class="sc-pct">0</span>%)</span>' +
+        '<button type="button" class="hup-btn hup-btn--ghost hup-btn--sm sc-stop"><span class="dashicons dashicons-controls-pause" aria-hidden="true"></span>Detener</button></div>' +
         '<div class="hup-progress"><span class="sc-fill"></span></div>' +
         '<div class="sc-log"></div>' +
         '</div>'
@@ -417,6 +431,20 @@
     $tot  = $wrap.find('.sc-tot');
     $pct  = $wrap.find('.sc-pct');
 
+    // «Detener»: el lote en curso termina y no se pide el siguiente. Lo ya
+    // escaneado queda guardado.
+    var stopped = false;
+    var $stop = $wrap.find('.sc-stop');
+    if (!$stop.length) {
+      // Barra creada por una versión anterior del JS en esta misma página.
+      $stop = $('<button type="button" class="hup-btn hup-btn--ghost hup-btn--sm sc-stop">Detener</button>').appendTo($wrap.find('.hup-inline').first());
+    }
+    $stop.prop('disabled', false).show().off('click.hcsai').on('click.hcsai', function () {
+      stopped = true;
+      $stop.prop('disabled', true);
+      scanLog('Deteniendo al terminar el lote en curso…');
+    });
+
     function scanLog(msg, type) {
       // .text(): msg puede incluir mensajes de error que vienen del servidor.
       $log.append(
@@ -438,11 +466,13 @@
     var fallos = 0;
 
     function restoreBtn() {
+      $stop.hide();
       $triggerBtn.prop('disabled', false).html($triggerBtn.data('orig-label') || '<span class="dashicons dashicons-search" aria-hidden="true"></span>Escanear');
     }
 
     function finish() {
-      scanLog('Listo: ' + ai + ' IA · ' + manual + ' manuales · ' + sinSeo + ' sin SEO' + (fallos ? ' · ' + fallos + ' con error' : '') + '.', 'ok');
+      var resumen = ai + ' IA · ' + manual + ' manuales · ' + sinSeo + ' sin SEO' + (fallos ? ' · ' + fallos + ' con error' : '');
+      scanLog(stopped ? 'Detenido en ' + done + ' de ' + total + ': ' + resumen + '. Lo escaneado quedó guardado.' : 'Listo: ' + resumen + '.', 'ok');
       restoreBtn();
       // Refrescar contadores del dashboard si están en el DOM
       ajax('scan_stats', { post_type: postType }).done(function (rs) {
@@ -483,52 +513,71 @@
         });
     }
 
+    // Lotes de 25 por petición (antes, una petición por contenido).
+    var BATCH = 25;
+
+    function progress() {
+      var p = total ? Math.round((done / total) * 100) : 0;
+      $fill.css('width', p + '%');
+      $curr.text(done);
+      $pct.text(p);
+    }
+
     function scanPage(ids, page, pages) {
       var i = 0;
 
-      function nextScan() {
+      function nextBatch() {
+        if (stopped) { finish(); return; }
         if (i >= ids.length) {
           if (page < pages) { fetchPage(page + 1); } else { finish(); }
           return;
         }
 
-        var id = ids[i];
-        ajax('scan', { post_id: id })
-          .done(function (r2) {
-            i++;
-            done++;
-            var p = total ? Math.round((done / total) * 100) : 0;
-            $fill.css('width', p + '%');
-            $curr.text(done);
-            $pct.text(p);
+        var lote = ids.slice(i, i + BATCH);
+        i += lote.length;
 
-            if (r2.success) {
-              var score  = r2.data.score || 0;
-              var status = r2.data.status || 'manual';
+        ajax('scan_batch', { post_ids: lote })
+          .done(function (r2) {
+            if (!r2.success || !r2.data || !r2.data.results) {
+              done += lote.length;
+              fallos += lote.length;
+              scanLog('Lote ' + lote[0] + '–' + lote[lote.length - 1] + ' → ' + ((r2.data && r2.data.message) || 'error'), 'err');
+              progress();
+              setTimeout(nextBatch, 300);
+              return;
+            }
+
+            $.each(r2.data.results, function (k, res) {
+              done++;
+              if (res.error) {
+                fallos++;
+                scanLog('#' + res.post_id + ' → ' + res.error, 'err');
+                return;
+              }
+              var score  = res.score || 0;
+              var status = res.status || 'manual';
               // «Sin SEO» es score 0, igual que en los filtros y el Dashboard.
               if (score === 0) { sinSeo++; } else if (status === 'ai') { ai++; } else { manual++; }
 
-              var $row = $('tr[data-post-id="' + id + '"]').first();
+              var $row = $('tr[data-post-id="' + res.post_id + '"]').first();
               if ($row.length) {
                 updateScoreBadge($row, score);
                 updateStatusCell($row, status);
               }
-            } else {
-              fallos++;
-              scanLog('#' + id + ' → ' + ((r2.data && r2.data.message) || 'error'), 'err');
-            }
-            setTimeout(nextScan, 80);
+            });
+            progress();
+            setTimeout(nextBatch, 80);
           })
           .fail(function (xhr) {
-            i++;
-            done++;
-            fallos++;
-            scanLog('#' + id + ' → Error HTTP ' + xhr.status, 'err');
-            setTimeout(nextScan, 300);
+            done += lote.length;
+            fallos += lote.length;
+            scanLog('Lote ' + lote[0] + '–' + lote[lote.length - 1] + ' → Error HTTP ' + xhr.status, 'err');
+            progress();
+            setTimeout(nextBatch, 300);
           });
       }
 
-      nextScan();
+      nextBatch();
     }
 
     fetchPage(1);
@@ -599,6 +648,51 @@
     alt_text: 'Alt text de la imagen destacada',
     tags: 'Etiquetas'
   };
+
+  // Buscador de «Mejorar post»: la lista inicial trae los 100 más recientes; al
+  // escribir se buscan en todo el blog. Borrar la búsqueda vuelve a la lista inicial.
+  (function () {
+    var $search = $('#improve-post-search');
+    if (!$search.length) return;
+    var $select = $('#improve-post-id');
+    var $hint = $('#improve-post-hint');
+    var initialOptions = $select.html();
+    var initialHint = $hint.text();
+    var timer = null;
+    var seq = 0;
+
+    $search.on('input', function () {
+      var term = $.trim($search.val());
+      clearTimeout(timer);
+      if (term.length < 2) {
+        seq++;
+        $select.html(initialOptions);
+        $hint.text(initialHint);
+        return;
+      }
+      timer = setTimeout(function () {
+        var mine = ++seq;
+        $hint.text('Buscando…');
+        ajax('search_posts', { term: term })
+          .done(function (r) {
+            if (mine !== seq) return;
+            var posts = (r && r.success && r.data && r.data.posts) || [];
+            $select.empty().append($('<option value=""></option>').text(posts.length ? 'Seleccionar...' : 'Sin resultados'));
+            $.each(posts, function (i, p) {
+              $select.append($('<option></option>').val(p.id).text(p.title));
+            });
+            if (posts.length === 1) $select.val(String(posts[0].id));
+            $hint.text(posts.length
+              ? posts.length + (posts.length === 1 ? ' post encontrado' : ' posts encontrados') + (posts.length >= 50 ? ' (se muestran los 50 primeros; afina la búsqueda).' : '.')
+              : 'No hay posts publicados con «' + term + '».');
+          })
+          .fail(function () {
+            if (mine !== seq) return;
+            $hint.text('No se pudo buscar. Revisa tu conexión e inténtalo de nuevo.');
+          });
+      }, 300);
+    });
+  })();
 
   $(document).on('click', '#btn-improve-post', function () {
     var $btn = $(this);

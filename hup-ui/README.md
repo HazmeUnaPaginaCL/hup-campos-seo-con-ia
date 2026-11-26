@@ -2,8 +2,8 @@
 
 Sistema de diseño para los paneles de administración de los plugins HUP.
 
-Esta copia corresponde a la versión 1.2.0: incorpora las correcciones 1.1.0
-usadas por HUP - Instagram Feed y el componente `.hup-log` para procesos largos.
+Versión 1.4.0. El detalle de cada versión está en `CHANGELOG.md`. La copia
+maestra vive en `hup-kit-ecommerce-chile/.diseno-plugin/hup-ui/`.
 
 ## Uso en un plugin nuevo
 1. Copia esta carpeta dentro del plugin: `mi-plugin/hup-ui/`.

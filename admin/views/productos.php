@@ -208,7 +208,7 @@ if ( ! function_exists( 'hcsai_sort_arrow' ) ) {
                     if ( 'none' !== $seo_plugin ) :
                         foreach ( $seo_field_map as $sf_key => $sf_meta ) :
                             if ( in_array( $sf_key, [ 'seo_title', 'meta_description', 'focus_keyword', 'og_title', 'og_description' ], true ) ) :
-                                $cf[ $sf_key ] = ! empty( get_post_meta( $post->ID, $sf_meta, true ) );
+                                $cf[ $sf_key ] = ! empty( \HUP\CamposSeoIA\SEO\FieldMap::value( $post->ID, $sf_meta ) );
                             endif;
                         endforeach;
                     endif;

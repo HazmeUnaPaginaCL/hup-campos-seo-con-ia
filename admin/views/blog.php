@@ -106,15 +106,21 @@ require __DIR__ . '/partials/layout-open.php';
         <div class="hup-field">
             <label class="hup-label" for="improve-post-id">Seleccionar post</label>
             <div class="hup-control">
+                <?php
+                $posts_list  = get_posts( [ 'post_type' => 'post', 'post_status' => 'publish', 'numberposts' => 100 ] );
+                $posts_total = (int) ( wp_count_posts( 'post' )->publish ?? 0 );
+                ?>
+                <div class="hup-search">
+                    <span class="dashicons dashicons-search" aria-hidden="true"></span>
+                    <input type="search" id="improve-post-search" class="hup-input" placeholder="Buscar post por título…" autocomplete="off" aria-label="Buscar post por título" aria-controls="improve-post-id" aria-describedby="improve-post-hint">
+                </div>
                 <select id="improve-post-id" class="hup-select">
                     <option value="">Seleccionar...</option>
-                    <?php
-                    $posts_list = get_posts( [ 'post_type' => 'post', 'post_status' => 'publish', 'numberposts' => 100 ] );
-                    foreach ( $posts_list as $p ) :
-                    ?>
+                    <?php foreach ( $posts_list as $p ) : ?>
                     <option value="<?php echo esc_attr( $p->ID ); ?>"><?php echo esc_html( $p->post_title ); ?></option>
                     <?php endforeach; ?>
                 </select>
+                <p class="hup-hint" id="improve-post-hint" aria-live="polite"><?php echo esc_html( $posts_total > 100 ? 'Se muestran los 100 más recientes de ' . number_format_i18n( $posts_total ) . '. Busca para encontrar los demás.' : 'Escribe para filtrar la lista.' ); ?></p>
             </div>
         </div>
         <div class="hup-field">

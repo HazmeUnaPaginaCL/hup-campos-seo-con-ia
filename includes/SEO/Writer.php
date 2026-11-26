@@ -46,7 +46,7 @@ class Writer {
 
             // Si no sobreescribir, verificar que no exista
             if ( ! $overwrite ) {
-                $existing = get_post_meta( $post_id, $meta_key, true );
+                $existing = FieldMap::value( $post_id, $meta_key );
                 if ( ! empty( $existing ) ) {
                     continue;
                 }
@@ -61,7 +61,7 @@ class Writer {
 
             // Sin valor se borra el meta: así el plugin SEO vuelve a su plantilla.
             if ( '' === $value ) {
-                delete_post_meta( $post_id, $meta_key );
+                FieldMap::update( $post_id, $meta_key, '' );
                 continue;
             }
 
@@ -74,7 +74,7 @@ class Writer {
                 }
             }
 
-            update_post_meta( $post_id, $meta_key, $value );
+            FieldMap::update( $post_id, $meta_key, $value );
         }
 
         // Campos nativos de WordPress: escribir en campos que WP/Woo realmente usa

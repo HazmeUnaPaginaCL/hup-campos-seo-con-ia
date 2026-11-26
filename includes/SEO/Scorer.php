@@ -290,7 +290,7 @@ class Scorer {
             if ( 'aioseo' === $write_target && isset( $aioseo_og[ $field_name ] ) ) {
                 $value = $aioseo_og[ $field_name ];
             } else {
-                $value = get_post_meta( $post_id, $meta_key, true );
+                $value = FieldMap::value( $post_id, $meta_key );
             }
 
             // AIOSEO focus_keyword: decodificar JSON para verificar si tiene valor real

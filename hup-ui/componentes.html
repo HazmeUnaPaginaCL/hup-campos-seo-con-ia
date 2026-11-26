@@ -29,7 +29,7 @@
 <body>
 <div class="hc-wrap">
   <h1>HUP Admin UI · Componentes</h1>
-  <p>HTML exacto de cada componente. El bloque oscuro bajo cada ejemplo es el código a copiar (se genera del propio ejemplo). Versión 1.3.1.</p>
+  <p>HTML exacto de cada componente. El bloque oscuro bajo cada ejemplo es el código a copiar (se genera del propio ejemplo). Versión 1.4.0.</p>
   <nav class="hc-toc" id="toc"></nav>
 
   <!-- ============ ESTRUCTURA ============ -->
@@ -54,6 +54,9 @@
         <li><a class="hup-nav__item is-active" href="#"><span class="dashicons dashicons-admin-generic"></span>General</a></li>
         <li><a class="hup-nav__item" href="#"><span class="dashicons dashicons-art"></span>Diseño</a></li>
         <li><a class="hup-nav__item" href="#"><span class="dashicons dashicons-database"></span>Caché</a></li>
+        <li><a class="hup-nav__item" href="#"><span class="dashicons dashicons-book"></span>Guía</a></li>
+        <li class="hup-nav__sep" role="separator"></li>
+        <li><a class="hup-nav__item" href="#"><span class="dashicons dashicons-admin-plugins"></span>Otros plugins HUP</a></li>
       </ul>
       <div class="hup-nav__footer">Hecho por <a href="https://hazmeunapagina.cl" target="_blank" rel="noopener noreferrer"><strong>HUP</strong></a> <span aria-hidden="true">💻</span><br>Desde Quilpué para <a href="https://wordpress.org/plugins/search/hup/" target="_blank" rel="noopener noreferrer"><strong>WordPress</strong></a></div>
     </nav>
@@ -213,7 +216,7 @@
   <div class="hup-control">
     <div class="hup-inline">
       <input class="hup-input hup-input--mono" type="password" id="k1" placeholder="Guardada: déjala vacía para conservarla" style="max-width:360px">
-      <button type="button" class="hup-btn hup-btn--icon" data-hup-reveal="#k1" title="Mostrar"><span class="dashicons dashicons-visibility"></span></button>
+      <button type="button" class="hup-btn hup-btn--icon" data-hup-reveal="#k1" aria-label="Mostrar clave" aria-pressed="false" title="Mostrar clave"><span class="dashicons dashicons-visibility" aria-hidden="true"></span></button>
       <span class="hup-save-status"><span class="dashicons dashicons-yes-alt"></span>Verificada</span>
     </div>
     <p class="hup-hint">Se guarda cifrada y no vuelve a mostrarse.</p>
@@ -539,7 +542,7 @@
     <div class="hc-demo hup-app"><div class="hc-pad hup-stack">
 <div class="hup-account" style="background:#fff">
   <div class="hup-avatar">E</div>
-  <div class="hup-row__text"><div class="hup-row__title">Cuenta de Google</div><div class="hup-hint">eliasrabahsolis@gmail.com</div></div>
+  <div class="hup-row__text"><div class="hup-row__title">Cuenta de Google</div><div class="hup-hint">tu-cuenta@gmail.com</div></div>
   <button type="button" class="hup-btn hup-btn--danger-outline hup-btn--sm" data-hup-confirm="¿Desconectar la cuenta?">Desconectar</button>
 </div>
 <div class="hup-preview">salida real del shortcode (do_shortcode)</div>
@@ -599,6 +602,65 @@
     <header><h3>Toast de error</h3><code>HUP.toast('No se pudo guardar', 'error')</code></header>
     <div class="hc-demo hup-app"><div class="hc-pad">
 <button type="button" class="hup-btn hup-btn--secondary" onclick="HUP.toast('No se pudo guardar', 'error')">Probar toast de error</button>
+    </div></div>
+  </section>
+
+  <!-- ============ 1.4.0 ============ -->
+  <div class="hc-cat" id="v140">Agregados 1.4.0</div>
+
+  <section class="hc-item">
+    <header><h3>Otros plugins HUP</h3><code>.hup-plugins · .hup-plugin · __icon · __name · __desc · __link</code></header>
+    <p class="hc-note">No se escribe a mano: lo imprime <code>hup-ui/otros-plugins.php</code> (ver CLAUDE.md). 2 columnas; 1 bajo 960 px.</p>
+    <div class="hc-demo hup-app"><div class="hc-pad">
+<ul class="hup-plugins">
+  <li>
+    <article class="hup-plugin">
+      <div class="hup-plugin__icon" style="--hup-plugin:#0039a6"><span class="dashicons dashicons-cart" aria-hidden="true"></span></div>
+      <div class="hup-plugin__text">
+        <h3 class="hup-plugin__name">HUP - Kit Ecommerce Chile <span class="hup-badge hup-badge--success hup-badge--dot">Instalado</span></h3>
+        <p class="hup-plugin__desc">Regiones, comunas, RUT, despacho y facturación para tu tienda WooCommerce.</p>
+        <a class="hup-plugin__link" href="https://wordpress.org/plugins/hup-kit-ecommerce-chile/" target="_blank" rel="noopener noreferrer">Ver en WordPress.org<span class="dashicons dashicons-external" aria-hidden="true"></span><span class="screen-reader-text"> (se abre en una pestaña nueva)</span></a>
+      </div>
+    </article>
+  </li>
+  <li>
+    <article class="hup-plugin">
+      <div class="hup-plugin__icon" style="--hup-plugin:#15803d"><span class="dashicons dashicons-chart-line" aria-hidden="true"></span></div>
+      <div class="hup-plugin__text">
+        <h3 class="hup-plugin__name">HUP - Indicadores Económicos (Chile)</h3>
+        <p class="hup-plugin__desc">Publica UF, UTM, dólar y más con un shortcode.</p>
+        <a class="hup-plugin__link" href="https://wordpress.org/plugins/hup-indicadores-economicos-chile/" target="_blank" rel="noopener noreferrer">Ver en WordPress.org<span class="dashicons dashicons-external" aria-hidden="true"></span><span class="screen-reader-text"> (se abre en una pestaña nueva)</span></a>
+      </div>
+    </article>
+  </li>
+</ul>
+    </div></div>
+  </section>
+
+  <section class="hc-item">
+    <header><h3>Tabla con desplazamiento propio</h3><code>.hup-table-wrap</code></header>
+    <p class="hc-note">Si se omite el contenedor, hup-admin.js lo agrega al cargar. Para tablas insertadas por AJAX: <code>HUP.refresh(contenedor)</code>.</p>
+    <div class="hc-demo hup-app"><div class="hc-pad">
+<div class="hup-card" style="overflow:hidden">
+  <div class="hup-table-wrap">
+    <table class="hup-table">
+      <thead><tr><th>Producto</th><th>SKU</th><th class="is-num">Precio</th><th class="is-num">Stock</th><th>Estado</th><th>Última sincronización</th></tr></thead>
+      <tbody>
+        <tr><td>Polera algodón orgánico</td><td><span class="hup-tag">POL-001</span></td><td class="is-num">$12.990</td><td class="is-num">14</td><td><span class="hup-badge hup-badge--success">Publicado</span></td><td>26/11/2026 10:42</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+    </div></div>
+  </section>
+
+  <section class="hc-item">
+    <header><h3>Toast que se queda y modal que no se cierra con Escape</h3><code>HUP.toast(msg, tipo, { duration: 0 }) · .hup-modal[data-hup-static]</code></header>
+    <p class="hc-note">Todos los modales ya manejan foco, Tab y Escape. <code>data-hup-static</code> se usa solo mientras corre un proceso que no se puede interrumpir.</p>
+    <div class="hc-demo hup-app"><div class="hc-pad hup-inline">
+<button type="button" class="hup-btn hup-btn--secondary" onclick="HUP.toast('La importación terminó con 3 errores. Revisa el historial para ver cada fila.', 'error', { duration: 0 })">Toast que se queda</button>
+<label class="hup-label" for="sel-demo" style="padding:0">Frecuencia</label>
+<select class="hup-select" id="sel-demo" style="max-width:220px"><option>Cada hora</option><option>Dos veces al día</option><option>Una vez al día</option></select>
     </div></div>
   </section>
 </div>

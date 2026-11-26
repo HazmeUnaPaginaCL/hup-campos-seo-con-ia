@@ -19,40 +19,37 @@ class ScanHandler extends BaseHandler {
 
     protected function register_actions(): void {
         $this->add_ajax( 'scan',       'handle_scan' );
+        $this->add_ajax( 'scan_batch', 'handle_scan_batch' );
         $this->add_ajax( 'scan_ids',   'handle_scan_ids' );
         $this->add_ajax( 'scan_stats', 'handle_scan_stats' );
     }
 
     /**
-     * Escanea un post individual: calcula score real y lo guarda.
-     * No llama a la IA. Solo lee campos existentes.
+     * Cuántos contenidos escanea handle_scan_batch() por petición. Solo lee y
+     * calcula, sin IA: 25 es rápido y deja detener el escaneo entre lotes.
      */
-    public function handle_scan(): void {
-        $this->verify_request();
+    private const SCAN_BATCH_SIZE = 25;
 
-        $post_id = $this->input_int( 'post_id' );
-
-        if ( ! $post_id ) {
-            wp_send_json_error( [ 'message' => 'ID de post requerido.' ] );
-            return;
-        }
-
-        $post = get_post( $post_id );
-        if ( ! $post ) {
-            wp_send_json_error( [ 'message' => 'Post no encontrado.' ] );
-            return;
+    /**
+     * Escanea un post: calcula su score real y lo guarda. No llama a la IA.
+     *
+     * @param int $post_id ID del post.
+     * @return array|string Resultado, o el mensaje de error.
+     */
+    private static function scan_one( int $post_id ) {
+        if ( ! $post_id || ! get_post( $post_id ) ) {
+            return 'Post no encontrado.';
         }
 
         $active_plugin = PluginDetector::detect_active();
         $write_target  = ( 'none' !== $active_plugin ) ? $active_plugin : 'native';
 
-        // Calcular score leyendo campos reales (Yoast/RankMath/AIOSEO/native)
+        // Calcular score leyendo campos reales (del plugin SEO activo o nativos)
         $score = Scorer::calculate( $post_id, $write_target );
 
         // Determinar estado: IA, manual o pendiente.
         $status = Status::of( $post_id, $score );
 
-        // Guardar score calculado
         update_post_meta( $post_id, '_hcsai_score', $score );
 
         // Si tiene contenido real pero nunca fue generado con IA,
@@ -61,12 +58,60 @@ class ScanHandler extends BaseHandler {
             update_post_meta( $post_id, '_hcsai_scanned', current_time( 'mysql', true ) );
         }
 
-        wp_send_json_success( [
-            'post_id'    => $post_id,
-            'score'      => $score,
-            'status'     => $status,
-            'plugin'     => $active_plugin,
-        ] );
+        return [
+            'post_id' => $post_id,
+            'score'   => $score,
+            'status'  => $status,
+            'plugin'  => $active_plugin,
+        ];
+    }
+
+    /**
+     * Escanea un post individual. Se conserva para quien la use; el panel
+     * escanea por lotes con handle_scan_batch().
+     */
+    public function handle_scan(): void {
+        $this->verify_request();
+
+        $post_id = $this->input_int( 'post_id' );
+        if ( ! $post_id ) {
+            wp_send_json_error( [ 'message' => 'ID de post requerido.' ] );
+            return;
+        }
+
+        $result = self::scan_one( $post_id );
+        if ( is_string( $result ) ) {
+            wp_send_json_error( [ 'message' => $result ] );
+            return;
+        }
+
+        wp_send_json_success( $result );
+    }
+
+    /**
+     * Escanea un lote de hasta SCAN_BATCH_SIZE posts en una sola petición.
+     * Antes se hacía una petición por post: un catálogo de 2.000 productos
+     * eran 2.000 peticiones seguidas y no se podía detener.
+     */
+    public function handle_scan_batch(): void {
+        $this->verify_request();
+
+        $ids = array_slice( array_values( array_unique( array_filter( array_map( 'absint', $this->input_array( 'post_ids' ) ) ) ) ), 0, self::SCAN_BATCH_SIZE );
+        if ( ! $ids ) {
+            wp_send_json_error( [ 'message' => 'No llegaron contenidos para escanear.' ] );
+            return;
+        }
+
+        // Una sola consulta para todos los metadatos del lote.
+        update_meta_cache( 'post', $ids );
+
+        $results = [];
+        foreach ( $ids as $post_id ) {
+            $result    = self::scan_one( $post_id );
+            $results[] = is_string( $result ) ? [ 'post_id' => $post_id, 'error' => $result ] : $result;
+        }
+
+        wp_send_json_success( [ 'results' => $results ] );
     }
 
     /**

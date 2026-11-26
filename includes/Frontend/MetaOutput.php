@@ -26,6 +26,58 @@ class MetaOutput {
     }
 
     /**
+     * Si el plugin imprime sus etiquetas en el <head>.
+     *
+     * Filtro `hcsai_output_meta_tags`: devuelve false para que el plugin no
+     * imprima nada (título, descripción ni Open Graph), por ejemplo si otro
+     * plugin o el tema ya se encarga y aparecen etiquetas repetidas. Los campos
+     * se siguen generando y guardando.
+     *
+     * @param string $part 'title', 'description' u 'open_graph'.
+     */
+    private static function enabled( string $part ): bool {
+        return (bool) apply_filters( 'hcsai_output_meta_tags', true, $part, get_queried_object_id() );
+    }
+
+    /**
+     * Si el tema Bricks ya imprime esa etiqueta para la página actual.
+     *
+     * Bricks imprime siempre sus Open Graph (salvo que se apaguen en Bricks →
+     * Configuración → General) y la descripción y el título solo si la página o
+     * su plantilla los tienen en «Ajustes de página → SEO». Se repite aquí su
+     * misma lógica para no duplicar etiquetas.
+     *
+     * @param string $part 'title', 'description' u 'open_graph'.
+     */
+    private static function bricks_prints( string $part ): bool {
+        if ( ! class_exists( '\Bricks\Database' ) || ! defined( 'BRICKS_DB_PAGE_SETTINGS' ) ) {
+            return false;
+        }
+
+        $global = (array) ( \Bricks\Database::$global_settings ?? [] );
+
+        if ( 'open_graph' === $part ) {
+            return ! apply_filters( 'bricks/frontend/disable_opengraph', ! empty( $global['disableOpenGraph'] ) ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Filtro de Bricks: se consulta para saber qué imprime el tema.
+        }
+
+        if ( apply_filters( 'bricks/frontend/disable_seo', ! empty( $global['disableSeo'] ) ) ) { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Filtro de Bricks: se consulta para saber qué imprime el tema.
+            return false;
+        }
+
+        $setting     = 'title' === $part ? 'documentTitle' : 'metaDescription';
+        $template_id = (int) ( \Bricks\Database::$active_templates['content'] ?? 0 );
+
+        foreach ( array_unique( array_filter( [ get_queried_object_id(), $template_id ] ) ) as $id ) {
+            $settings = get_post_meta( $id, BRICKS_DB_PAGE_SETTINGS, true );
+            if ( is_array( $settings ) && ! empty( $settings[ $setting ] ) ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Usa el título SEO generado como <title> de la página.
      *
      * Se generaba, se pagaba y sumaba 20 puntos al score, pero no llegaba nunca
@@ -35,7 +87,7 @@ class MetaOutput {
      * @param string $title Título que propone WordPress u otro filtro.
      */
     public function filter_document_title( $title ) {
-        if ( ! is_singular() ) {
+        if ( ! is_singular() || ! self::enabled( 'title' ) || self::bricks_prints( 'title' ) ) {
             return $title;
         }
 
@@ -85,8 +137,14 @@ class MetaOutput {
             $og_description = $description;
         }
 
-        if ( '' !== $description ) {
+        if ( '' !== $description && self::enabled( 'description' ) && ! self::bricks_prints( 'description' ) ) {
             echo '<meta name="description" content="' . esc_attr( $description ) . '">' . "\n";
+        }
+
+        // Con las Open Graph de Bricks activas, se dejan a Bricks: si se apagan en
+        // Bricks → Configuración, el plugin imprime las suyas con lo generado.
+        if ( ! self::enabled( 'open_graph' ) || self::bricks_prints( 'open_graph' ) ) {
+            return;
         }
 
         echo '<meta property="og:title" content="' . esc_attr( $og_title ) . '">' . "\n";

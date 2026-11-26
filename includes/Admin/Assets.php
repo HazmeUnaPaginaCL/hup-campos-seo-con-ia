@@ -188,12 +188,11 @@ class Assets {
         }
 
         // Mantener abierta la tarjeta o pestaña que se acaba de guardar.
-        $redirect_url = add_query_arg( [
-            'page'    => 'hcsai',
+        $redirect_url = Menu::url( [
             'tab'     => 'configuracion',
             'panel'   => $panel,
             'updated' => $section,
-        ], admin_url( 'admin.php' ) );
+        ] );
         wp_safe_redirect( $redirect_url );
         exit;
     }

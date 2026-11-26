@@ -5,6 +5,25 @@ Versionado semántico. Cada plugin copia `hup-ui/` y anota aquí qué versión u
 - **Menor** (1.1.0): componente nuevo, sin romper nada.
 - **Parche** (1.0.1): ajuste visual en tokens o CSS.
 
+## 1.4.0 — 26/11/2026
+Sale primero con HUP - Sincroniza productos en planillas 1.1.0; después, Campos SEO 1.2.0, Kit 1.4.0 e Indicadores 1.3.0. No cambia el markup existente: basta con copiar `hup-ui/` y subir la versión del enqueue.
+- **Listas desplegables con flecha.** `.hup-select` dibuja su propia flecha (antes `background: #fff` borraba la de WordPress y parecían campos de texto). Deshabilitados con fondo gris.
+- **Móvil (≤ 782 px):** header más compacto, título y badges en filas separadas (antes el título ocupaba 4-5 líneas), descripción en varias líneas, menos relleno en `.hup-main` y tarjetas, y la pestaña activa del menú se centra al cargar y al cambiar.
+- `.hup-card__head` baja el botón o badge de la cabecera bajo el título cuando no cabe a su lado.
+- `.hup-btn-group` no se corta: en móvil ocupa el ancho y reparte los botones.
+- `.hup-account`: el botón baja si no cabe junto al correo (antes se montaba).
+- **Tablas con desplazamiento propio:** `.hup-table-wrap` nuevo; `hup-admin.js` envuelve solo las `.hup-table` que no lo traen ni están ya en un contenedor con scroll. Encabezados sin cortar en móvil.
+- **Modales:** cualquier `.hup-modal` que se muestre recibe `role="dialog"`, `aria-modal` y nombre; el foco entra, no sale con Tab y vuelve al botón que lo abrió. Escape cierra (pulsa su `[data-hup-close]`). `data-hup-static` impide cerrar con Escape o con el fondo. La caja normal tiene alto máximo con scroll.
+- `.hup-modal__scroll > * { flex-shrink: 0 }`: el arreglo de Campos SEO 1.1.2 pasa a la copia maestra.
+- Evento cancelable `hup:modal-close` en el `.hup-modal` antes de cerrar con `[data-hup-close]`, el fondo o Escape. Con `preventDefault()` el modal no se cierra (lo usa Campos SEO para avisar de cambios sin guardar).
+- `.hup-card__head + .hup-card__foot`: una tarjeta sin cuerpo ya no deja el texto pegado a la línea del pie.
+- **Toasts:** se apilan, tienen botón de cerrar, duran 5 s (error 10 s) más un extra si el texto es largo y se pausan con el puntero o el foco encima. `HUP.toast(msg, tipo, { duration })`; `duration: 0` deja el aviso hasta cerrarlo.
+- **Mostrar/ocultar clave:** `[data-hup-reveal]` cambia el ícono (`visibility` / `hidden`), `aria-pressed` y su texto accesible.
+- **Tooltips:** nombre accesible (`role="img"` + `aria-label` con el texto), Escape los oculta y no se salen por los bordes de la pantalla.
+- **«Otros plugins HUP»:** `otros-plugins.php` (lista única de plugins) y componentes `.hup-plugins` / `.hup-plugin`. Separador del menú `.hup-nav__sep`.
+- `HUP.refresh(raiz)`: vuelve a preparar tablas y tooltips de contenido cargado por AJAX.
+- «Copiar» desde un `<input>` o `<textarea>` copia su valor actual.
+
 ## Sin cambio de versión — 19/11/2026 · Pie del menú
 - El pie de `.hup-nav` pasa a dos líneas: `Hecho por HUP 💻` y `Desde Quilpué para WordPress`, con los enlaces en negrita (`<strong>`). «HUP» enlaza a hazmeunapagina.cl y «WordPress» a `https://wordpress.org/plugins/search/hup/`. Regla y markup en `CLAUDE.md` (Estructura de página).
 - Solo cambia el texto del pie en cada panel; `tokens.css`, `hup-admin.css` y `hup-admin.js` siguen iguales, así que la versión se mantiene en 1.3.1.

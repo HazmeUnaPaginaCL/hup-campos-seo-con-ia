@@ -31,6 +31,19 @@ $stats       = \HUP\CamposSeoIA\Logger::stats();
 $last_logs   = \HUP\CamposSeoIA\Logger::get_recent( 8 );
 $usd_to_clp  = \HUP\CamposSeoIA\Settings::usd_to_clp();
 
+// Montos en formato chileno. En pesos sin decimales; lo que no llega a $1 se muestra
+// «< $1» en vez de «$0». En dólares, 2 decimales, o 4 si el monto es de centavos.
+$clp_text = static function ( float $usd ) use ( $usd_to_clp ): string {
+    $clp = $usd * $usd_to_clp;
+    if ( $clp > 0 && $clp < 1 ) {
+        return '< $1';
+    }
+    return '$' . number_format( $clp, 0, ',', '.' );
+};
+$usd_text = static function ( float $usd ): string {
+    return 'US$' . number_format( $usd, ( $usd > 0 && $usd < 0.01 ) ? 4 : 2, ',', '.' );
+};
+
 // Contar productos/posts con y sin SEO, con el mismo criterio que los listados.
 if ( $has_woo ) {
     \HUP\CamposSeoIA\SEO\Status::fill_missing( 'product' );
@@ -44,26 +57,27 @@ require __DIR__ . '/partials/layout-open.php';
 ?>
 
 <!-- Stats -->
-<div class="hup-grid hup-grid--3">
+<div class="hup-grid hcsai-stats">
     <?php if ( $has_woo ) : ?>
-    <a href="<?php echo esc_url( admin_url( 'admin.php?page=hcsai&tab=productos&seo_status=done' ) ); ?>" class="hup-stat" title="Ver productos con SEO">
+    <a href="<?php echo esc_url( \HUP\CamposSeoIA\Admin\Menu::url( [ 'tab' => 'productos', 'seo_status' => 'done' ] ) ); ?>" class="hup-stat" title="Ver productos con SEO">
         <div class="hup-stat__label">Productos con SEO</div>
         <div class="hup-stat__value"><?php echo esc_html( $products['with_seo'] ); ?> / <?php echo esc_html( $products['total'] ); ?></div>
     </a>
-    <a href="<?php echo esc_url( admin_url( 'admin.php?page=hcsai&tab=productos&seo_status=pending' ) ); ?>" class="hup-stat" title="Ver productos sin SEO">
+    <a href="<?php echo esc_url( \HUP\CamposSeoIA\Admin\Menu::url( [ 'tab' => 'productos', 'seo_status' => 'pending' ] ) ); ?>" class="hup-stat" title="Ver productos sin SEO">
         <div class="hup-stat__label">Productos sin SEO</div>
         <div class="hup-stat__value"><?php echo esc_html( $products['without_seo'] ); ?></div>
         <?php if ( $products['unscanned'] > 0 ) : ?><p class="hup-hint">Incluye <?php echo esc_html( $products['unscanned'] ); ?> sin escanear</p><?php endif; ?>
     </a>
     <?php endif; ?>
-    <a href="<?php echo esc_url( admin_url( 'admin.php?page=hcsai&tab=blog&seo_status=pending' ) ); ?>" class="hup-stat" title="Ver posts sin SEO">
+    <a href="<?php echo esc_url( \HUP\CamposSeoIA\Admin\Menu::url( [ 'tab' => 'blog', 'seo_status' => 'pending' ] ) ); ?>" class="hup-stat" title="Ver posts sin SEO">
         <div class="hup-stat__label">Posts sin SEO</div>
         <div class="hup-stat__value"><?php echo esc_html( $posts['without_seo'] ); ?></div>
         <?php if ( $posts['unscanned'] > 0 ) : ?><p class="hup-hint">Incluye <?php echo esc_html( $posts['unscanned'] ); ?> sin escanear</p><?php endif; ?>
     </a>
     <div class="hup-stat">
-        <div class="hup-stat__label">Gasto mensual (USD)</div>
-        <div class="hup-stat__value">$<?php echo esc_html( number_format( $monthly, 4, ',', '.' ) ); ?></div>
+        <div class="hup-stat__label">Gasto del mes</div>
+        <div class="hup-stat__value"><?php echo esc_html( $clp_text( $monthly ) ); ?></div>
+        <div class="hup-stat__sub"><?php echo esc_html( $usd_text( $monthly ) ); ?></div>
     </div>
     <div class="hup-stat">
         <div class="hup-stat__label">Generaciones totales</div>
@@ -72,7 +86,7 @@ require __DIR__ . '/partials/layout-open.php';
 </div>
 
 <!-- Sistema -->
-<div class="hup-notice"><span class="dashicons dashicons-info" aria-hidden="true"></span><p>Si los scores no reflejan el contenido actual, escanea los productos para leer sus campos SEO sin usar IA. <?php if ( $has_woo ) : ?><a href="<?php echo esc_url( admin_url( 'admin.php?page=hcsai&tab=productos#hcsai-scan' ) ); ?>">Ir a Productos</a><?php endif; ?></p></div>
+<div class="hup-notice"><span class="dashicons dashicons-info" aria-hidden="true"></span><p>Si los scores no reflejan el contenido actual, escanea los productos para leer sus campos SEO sin usar IA. <?php if ( $has_woo ) : ?><a href="<?php echo esc_url( \HUP\CamposSeoIA\Admin\Menu::url( [ 'tab' => 'productos' ] ) . '#hcsai-scan' ); ?>">Ir a Productos</a><?php endif; ?></p></div>
 
 <div class="hup-card">
     <div class="hup-card__head"><h3 class="hup-card__title">Estado del sistema</h3></div>
@@ -133,8 +147,8 @@ require __DIR__ . '/partials/layout-open.php';
                 <td><?php echo esc_html( $log->post_type ); ?></td>
                 <td><?php echo esc_html( $log->action ); ?></td>
                 <td><?php echo esc_html( number_format( $log->tokens_used ) ); ?></td>
-                <td>$<?php echo esc_html( number_format( $log->cost_usd, 6 ) ); ?></td>
-                <td>$<?php echo esc_html( number_format( $log->cost_usd * $usd_to_clp, 0, ',', '.' ) ); ?></td>
+                <td><?php echo esc_html( $usd_text( (float) $log->cost_usd ) ); ?></td>
+                <td><?php echo esc_html( $clp_text( (float) $log->cost_usd ) ); ?></td>
                 <td>
                     <?php if ( 'ok' === $log->status ) : ?>
                         <span class="hup-badge hup-badge--success hup-badge--dot">Completado</span>

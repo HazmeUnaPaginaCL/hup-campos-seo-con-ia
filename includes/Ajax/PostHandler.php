@@ -19,6 +19,41 @@ class PostHandler extends BaseHandler {
         $this->add_ajax( 'create_post', 'handle_create' );
         $this->add_ajax( 'improve_post', 'handle_improve' );
         $this->add_ajax( 'apply_improvement', 'handle_apply' );
+        $this->add_ajax( 'search_posts', 'handle_search' );
+    }
+
+    /**
+     * Busca posts publicados por título o contenido para «Mejorar post».
+     * La lista inicial trae solo los 100 más recientes; esto encuentra el resto.
+     */
+    public function handle_search(): void {
+        $this->verify_request();
+
+        $term  = $this->input( 'term' );
+        $posts = get_posts(
+            [
+                'post_type'        => 'post',
+                'post_status'      => 'publish',
+                'numberposts'      => 50,
+                's'                => $term,
+                'orderby'          => '' !== $term ? 'relevance' : 'date',
+                'suppress_filters' => false,
+            ]
+        );
+
+        wp_send_json_success(
+            [
+                'posts' => array_map(
+                    static function ( $post ) {
+                        return [
+                            'id'    => (int) $post->ID,
+                            'title' => '' !== $post->post_title ? $post->post_title : '(sin título)',
+                        ];
+                    },
+                    $posts
+                ),
+            ]
+        );
     }
 
     /**

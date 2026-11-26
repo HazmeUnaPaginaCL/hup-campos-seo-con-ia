@@ -39,7 +39,7 @@ class Reader {
                 continue;
             }
 
-            $value = get_post_meta( $post_id, $meta_key, true ) ?: '';
+            $value = FieldMap::value( $post_id, $meta_key ) ?: '';
 
             // AIOSEO v4+: focus_keyword se guarda como JSON en _aioseo_keyphrases
             if ( 'aioseo' === $plugin && 'focus_keyword' === $field_name && ! empty( $value ) ) {
